@@ -1,0 +1,69 @@
+services:
+  postgres:
+    image: timescale/timescaledb-ha:pg16-latest
+    container_name: eta_postgres
+    environment:
+      POSTGRES_USER: ${PGUSER:-postgres}
+      POSTGRES_PASSWORD: ${PGPASSWORD:-postgres}
+      POSTGRES_DB: ${PGDATABASE:-eta}
+      TZ: ${TZ:-UTC}
+    ports:
+      - "${PGPORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PGUSER:-postgres} -d ${PGDATABASE:-eta}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  mqtt:
+    image: eclipse-mosquitto:2
+    container_name: eta_mqtt
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+
+  worker:
+    build: ./worker
+    container_name: eta_worker
+    environment:
+      PGHOST: postgres
+      PGPORT: 5432
+      PGUSER: ${PGUSER:-postgres}
+      PGPASSWORD: ${PGPASSWORD:-postgres}
+      PGDATABASE: ${PGDATABASE:-eta}
+      MQTT_HOST: mqtt
+      MQTT_PORT: 1883
+      MQTT_TOPIC: eta/leituras/#
+      DEFAULT_SITE: "ETA Central"
+      DEFAULT_UNIT: "Filtração"
+      TZ: ${TZ:-UTC}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mqtt:
+        condition: service_started
+    restart: unless-stopped
+
+  streamlit:
+    build: ./streamlit
+    container_name: eta_streamlit
+    environment:
+      PGHOST: ${PGAPPHOST:-localhost}   # usado só se você for ligar pelo banco via browser
+      PGPORT: ${PGPORT:-5432}
+      PGUSER: ${PGUSER:-postgres}
+      PGPASSWORD: ${PGPASSWORD:-postgres}
+      PGDATABASE: ${PGDATABASE:-eta}
+      TZ: ${TZ:-UTC}
+    ports:
+      - "8501:8501"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  pgdata:

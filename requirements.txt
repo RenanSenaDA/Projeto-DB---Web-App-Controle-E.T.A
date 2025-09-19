@@ -1,0 +1,7 @@
+streamlit
+pandas
+numpy
+SQLAlchemy
+psycopg2-binary
+python-dateutil
+altair
