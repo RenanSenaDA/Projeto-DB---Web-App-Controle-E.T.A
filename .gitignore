@@ -9,3 +9,14 @@ __pycache__/
 .streamlit/secrets.toml
 .DS_Store
 Thumbs.db
+.venv/
+__pycache__/
+*.py[cod]
+*.pyd
+*.egg-info/
+*.log
+.env
+*.env
+.streamlit/secrets.toml
+.DS_Store
+Thumbs.db
