@@ -9,3 +9,5 @@ python-dotenv>=1.0
 plotly
 xlsxwriter
 streamlit-autorefresh
+streamlit-autorefresh==0.0.2
+
