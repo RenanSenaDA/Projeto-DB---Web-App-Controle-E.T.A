@@ -5,3 +5,7 @@ SQLAlchemy
 psycopg2-binary
 python-dateutil
 altair
+python-dotenv>=1.0
+plotly
+xlsxwriter
+streamlit-autorefresh

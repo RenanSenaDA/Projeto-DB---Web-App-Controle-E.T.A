@@ -1,22 +1,23 @@
 import os
 import io
 from datetime import datetime, timedelta, date
+
 import pandas as pd
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
+from dotenv import load_dotenv
 
-# carrega variáveis quando rodar fora do Docker
-try:
-    from dotenv import load_dotenv
-    load_dotenv(".env.local")
-    load_dotenv()
-except Exception:
-    pass
+# === Carrega variáveis do .env automaticamente (funciona no VSCode/Windows) ===
+load_dotenv()  # lê .env (se existir)
 
+# ============================================================================ #
+# Config / Constantes
+# ============================================================================ #
 st.set_page_config(page_title="ETA - Monitoramento", layout="wide")
 st.title("🌊 ETA — Monitoramento e Qualidade da Água")
 
-LOCAL_TZ = os.getenv("LOCAL_TZ", "America/Fortaleza")
+# Usa LOCAL_TZ; se não houver, tenta TZ; senão, Fortaleza como padrão
+LOCAL_TZ = os.getenv("LOCAL_TZ", os.getenv("TZ", "America/Fortaleza"))
 FEED_INTERVAL = int(os.getenv("FEED_INTERVAL", "5"))  # s
 
 # BD (SQLAlchemy)
@@ -43,7 +44,36 @@ DEFAULT_UNITS = {
     "nivel/reservatorio": "m",
 }
 
-# ======================= infra BD =======================
+# ============================================================================ #
+# Conexão com o banco (Render/Neon via DATABASE_URL; fallback PG* em dev)
+# ============================================================================ #
+def get_db_url() -> str:
+    """
+    Prioriza DATABASE_URL (ex.: Render/Neon). Converte 'postgres://' e
+    'postgresql://' para 'postgresql+psycopg2://' (SQLAlchemy).
+    Fallback: PGHOST/PGPORT/PGUSER/PGPASSWORD/PGDATABASE (dev/local).
+    """
+    url = os.getenv("DATABASE_URL")
+    if url and url.strip():
+        if url.startswith("postgres://"):
+            url = url.replace("postgres://", "postgresql+psycopg2://", 1)
+        if url.startswith("postgresql://"):
+            url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
+        return url
+
+    host = os.getenv("PGHOST", "localhost")
+    port = os.getenv("PGPORT", "5432")
+    user = os.getenv("PGUSER", "postgres")
+    pwd  = os.getenv("PGPASSWORD", "postgres")
+    db   = os.getenv("PGDATABASE", "eta")
+    return f"postgresql+psycopg2://{user}:{pwd}@{host}:{port}/{db}"
+
+DB_URL = get_db_url()
+USING_DATABASE_URL = bool(os.getenv("DATABASE_URL"))
+
+# ============================================================================ #
+# Infra BD
+# ============================================================================ #
 def ensure_db(db_url: str):
     if not HAVE_SQLA:
         raise RuntimeError("SQLAlchemy não está instalado.")
@@ -81,7 +111,9 @@ def ensure_db(db_url: str):
                 {"tag": tag, "unit": unit},
             )
 
-# ======================= utils =======================
+# ============================================================================ #
+# Utils
+# ============================================================================ #
 def _sanitize(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return df
@@ -252,7 +284,9 @@ def build_excel_report(df: pd.DataFrame, label_periodo: str,
 
     return buf.getvalue()
 
-# ======================= visual =======================
+# ============================================================================ #
+# Visual
+# ============================================================================ #
 def make_kpi_cards(df: pd.DataFrame):
     latest = df.sort_values("ts").groupby("tag", as_index=False).tail(1)
     if latest.empty:
@@ -322,13 +356,14 @@ def layout(df: pd.DataFrame):
     tags_sel = st.multiselect("Selecione as tags para plotar", TAGS_PADRAO, default=TAGS_PADRAO)
     charts_split(df, tags_sel)
 
-# ======================= sidebar / run =======================
-st.sidebar.header("Banco de Dados (container)")
-host = os.getenv("PGHOST", "localhost")
-port = os.getenv("PGPORT", "5432")
-user = os.getenv("PGUSER", "postgres")
-pwd  = os.getenv("PGPASSWORD", "postgres")
-db   = os.getenv("PGDATABASE", "eta")
+# ============================================================================ #
+# Sidebar / Run
+# ============================================================================ #
+st.sidebar.header("Banco de Dados")
+if USING_DATABASE_URL:
+    st.sidebar.success("Usando DATABASE_URL (Render/Produção)")
+else:
+    st.sidebar.warning("Usando variáveis PG* (Dev/Local)")
 
 # período do viewer
 date_range = st.sidebar.selectbox(
@@ -367,14 +402,13 @@ gen = st.sidebar.button("Gerar Excel")
 # refresh configurável
 refresh_s = st.sidebar.number_input("Atualização (s)", 1, 120, 5, 1)
 
-db_url = f"postgresql+psycopg2://{user}:{pwd}@{host}:{port}/{db}"
-st.caption(f"DB: {db}@{host}:{port}  •  Fuso: {LOCAL_TZ}  •  Auto-refresh: {int(refresh_s)}s")
+st.caption(f"Fuso: {LOCAL_TZ}  •  Auto-refresh: {int(refresh_s)}s")
 st_autorefresh(interval=int(refresh_s*1000), key="db_refresh")
 
 try:
-    ensure_db(db_url)
+    ensure_db(DB_URL)
     # viewer
-    df_view = load_from_db(db_url, start)
+    df_view = load_from_db(DB_URL, start)
     if df_view.empty:
         st.warning("Sem dados no intervalo. Publique no MQTT/worker ou amplie o período.")
     else:
@@ -383,7 +417,7 @@ try:
     # relatório Excel
     if gen:
         start_utc, end_utc, label = compute_range(rep_choice, custom_range)
-        df_period = fetch_period(db_url, start_utc, end_utc)
+        df_period = fetch_period(DB_URL, start_utc, end_utc)
         xlsx_bytes = build_excel_report(df_period, label, start_utc, end_utc)
         fname = f"relatorio_ETA_{label}.xlsx"
         st.sidebar.success("Relatório pronto.")
