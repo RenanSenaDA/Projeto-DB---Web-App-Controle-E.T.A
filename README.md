@@ -1,7 +1,111 @@
 # 🌊 Projeto Webapp - E.T.A
 
-Integração de dados de um **PLC** através do **Node-RED** com um **banco PostgreSQL em Docker**, disponibilizando visualização e relatórios via **Streamlit**.
+## 📌 Visão Geral
 
+O **Projeto Webapp - E.T.A** tem como objetivo criar uma solução integrada para **monitoramento em tempo real de Estações de Tratamento de Água (ETA)**, conectando sensores industriais a um sistema centralizado de visualização e análise.  
+
+O projeto busca transformar dados brutos coletados por CLPs e PLCs em **informações acionáveis**, permitindo acompanhamento de indicadores de qualidade, desempenho dos equipamentos e geração de relatórios de eficiência.
+
+---
+
+## 🎯 Problema a Resolver
+
+Nas operações de tratamento de água, os dados de campo muitas vezes ficam **fragmentados**, sendo acessados apenas localmente em cada equipamento ou exportados manualmente em planilhas. Isso gera:
+
+- Dificuldade de **visualização em tempo real** da planta como um todo  
+- **Perda de histórico** de dados e dificuldade em identificar tendências  
+- **Dependência de registros manuais**, sujeitos a falhas  
+- Pouco suporte a análises preditivas e relatórios automatizados  
+
+O projeto propõe um **sistema centralizado**, capaz de integrar medições de diferentes fontes e disponibilizar relatórios e dashboards em tempo real, reduzindo riscos e aumentando a eficiência operacional.
+
+---
+
+## 🚀 Objetivos
+
+- Integrar dados de **sensores/CLPs** com banco de dados centralizado
+- Disponibilizar dashboards interativos para acompanhamento de KPIs
+- Automatizar relatórios de desempenho e qualidade da água
+- Permitir análise de alarmes e eventos de forma preditiva
+- Criar uma base sólida para futuras integrações em nuvem
+
+---
+
+## 🛠️ Tecnologias Utilizadas
+
+### Banco de Dados
+- **PostgreSQL**  
+  Banco relacional para armazenar medições de forma estruturada (`sensor` e `measurement`).
+
+- **Docker Compose**  
+  Orquestração dos serviços (Postgres, Streamlit, Node-RED, pgAdmin), simplificando deploy e ambiente.
+
+### Ingestão de Dados
+- **Node-RED**  
+  Faz a integração direta com o **PLC** (via drivers/ protocolos industriais) e envia as medições para o PostgreSQL.  
+  > Hoje é o **caminho principal de ingestão**, substituindo a etapa anterior de simulação por buffer.
+
+- **(Sugestão futura) MQTT / Mosquitto**  
+  Embora não esteja em uso atualmente, o MQTT pode ser útil para integrar sensores IoT, gateways ou replicar dados para outros sistemas.
+
+
+### Visualização
+- **Streamlit**  
+  Framework Python para dashboards interativos em tempo real.  
+- **Grafana (opcional)**  
+  Pode ser conectado ao Postgres para análises avançadas e dashboards adicionais.
+
+### Ferramentas de Apoio
+- **pgAdmin** → administração e consultas no Postgres  
+- **GitHub** → versionamento, documentação e colaboração  
+
+---
+
+## 📊 O que o sistema faz hoje
+
+- Captura de dados em tempo real a partir de sensores ou simulações
+- Armazenamento estruturado no banco PostgreSQL
+- Dashboards interativos via Streamlit
+- Possibilidade de relatórios periódicos (diários, semanais, mensais)
+- Estrutura preparada para:
+  - **Alarmes e eventos** (limiares configuráveis)
+  - **KPIs de operação**: turbidez, TMP, recovery, rejeição, consumo de energia, vazão
+  - **Análises preditivas** futuras (ex.: fouling, degradação de membranas)
+
+---
+
+## 🌟 Benefícios Esperados
+
+- **Centralização** das informações operacionais
+- **Redução de falhas humanas** (menos registros manuais)
+- **Acompanhamento remoto em tempo real**
+- **Decisões baseadas em dados** (histórico consolidado e dashboards)
+- Base para **expansão em nuvem** e integração com sistemas de BI ou CMMS
+
+---
+
+## 📌 Status do Projeto
+
+- Versão inicial com ingestão de dados **via buffer** em Python + Streamlit  
+- Versão evoluída com ingestão de dados de **PLC → Node-RED → PostgreSQL**  
+- Estrutura preparada para **migração futura para nuvem (Cloudflare / Edge IoT)**  
+
+---
+
+## 📅 Próximos Passos
+
+1. Implementar **gestão de alarmes e eventos** no Node-RED/Streamlit  
+2. Normalizar e padronizar KPIs conforme baseline  
+3. Testar integrações com **Cloudflare Tunnel** para acesso externo seguro  
+4. Documentar casos de uso para ETA, UF e OR/RO  
+
+---
+
+✍️ **Projeto em desenvolvimento colaborativo**: feedbacks e contribuições são bem-vindos.
+
+
+
+## 📌 Como Funciona?
 ---
 
 # 🌐 Cenário
