@@ -7,20 +7,16 @@ import streamlit as st
 from streamlit_autorefresh import st_autorefresh
 from dotenv import load_dotenv
 
-# === Carrega variáveis do .env automaticamente (funciona no VSCode/Windows) ===
-load_dotenv()  # lê .env (se existir)
+# Carrega .env local se existir
+load_dotenv()
 
-# ============================================================================ #
-# Config / Constantes
-# ============================================================================ #
 st.set_page_config(page_title="ETA - Monitoramento", layout="wide")
-st.title("🌊 ETA — Monitoramento e Qualidade da Água")
+st.title("🌊 Plantsight — Monitoramento e Qualidade da Água")
 
-# Usa LOCAL_TZ; se não houver, tenta TZ; senão, Fortaleza como padrão
 LOCAL_TZ = os.getenv("LOCAL_TZ", os.getenv("TZ", "America/Fortaleza"))
-FEED_INTERVAL = int(os.getenv("FEED_INTERVAL", "5"))  # s
+FEED_INTERVAL = int(os.getenv("FEED_INTERVAL", "5"))
 
-# BD (SQLAlchemy)
+# SQLAlchemy (usaremos driver psycopg v3)
 try:
     from sqlalchemy import create_engine, text
     HAVE_SQLA = True
@@ -44,36 +40,35 @@ DEFAULT_UNITS = {
     "nivel/reservatorio": "m",
 }
 
-# ============================================================================ #
-# Conexão com o banco (Render/Neon via DATABASE_URL; fallback PG* em dev)
-# ============================================================================ #
-def get_db_url() -> str:
-    """
-    Prioriza DATABASE_URL (ex.: Render/Neon). Converte 'postgres://' e
-    'postgresql://' para 'postgresql+psycopg2://' (SQLAlchemy).
-    Fallback: PGHOST/PGPORT/PGUSER/PGPASSWORD/PGDATABASE (dev/local).
-    """
-    url = os.getenv("DATABASE_URL")
-    if url and url.strip():
-        if url.startswith("postgres://"):
-            url = url.replace("postgres://", "postgresql+psycopg2://", 1)
-        if url.startswith("postgresql://"):
-            url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
+# ------------------------- Helpers de URL/DB -------------------------
+def to_sqlalchemy_url(url: str) -> str:
+    """Normaliza para o dialect do SQLAlchemy com driver psycopg (v3)."""
+    if not url:
         return url
+    # normaliza prefixo "postgres://"
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
+    # força driver psycopg
+    if url.startswith("postgresql://") and "postgresql+psycopg://" not in url:
+        url = url.replace("postgresql://", "postgresql+psycopg://", 1)
+    return url
+
+def get_db_url() -> str:
+    url = os.getenv("DATABASE_URL", "").strip()
+    if url:
+        return to_sqlalchemy_url(url)
 
     host = os.getenv("PGHOST", "localhost")
     port = os.getenv("PGPORT", "5432")
     user = os.getenv("PGUSER", "postgres")
     pwd  = os.getenv("PGPASSWORD", "postgres")
     db   = os.getenv("PGDATABASE", "eta")
-    return f"postgresql+psycopg2://{user}:{pwd}@{host}:{port}/{db}"
+    return f"postgresql+psycopg://{user}:{pwd}@{host}:{port}/{db}"
 
 DB_URL = get_db_url()
-USING_DATABASE_URL = bool(os.getenv("DATABASE_URL"))
+USING_DATABASE_URL = bool(os.getenv("DATABASE_URL", "").strip())
 
-# ============================================================================ #
-# Infra BD
-# ============================================================================ #
+# ------------------------- Infra BD -------------------------
 def ensure_db(db_url: str):
     if not HAVE_SQLA:
         raise RuntimeError("SQLAlchemy não está instalado.")
@@ -103,24 +98,19 @@ def ensure_db(db_url: str):
         conn.execute(text("CREATE INDEX IF NOT EXISTS ix_measurement_sensor_ts ON eta.measurement(sensor_id, ts DESC);"))
         for tag, unit in DEFAULT_UNITS.items():
             conn.execute(
-                text("""
-                  INSERT INTO eta.sensor(tag, unit)
-                  VALUES (:tag, :unit)
-                  ON CONFLICT(tag) DO NOTHING;
-                """),
+                text("""INSERT INTO eta.sensor(tag, unit)
+                        VALUES (:tag, :unit) ON CONFLICT(tag) DO NOTHING;"""),
                 {"tag": tag, "unit": unit},
             )
 
-# ============================================================================ #
-# Utils
-# ============================================================================ #
+# ------------------------- Utils/Pandas -------------------------
 def _sanitize(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return df
     df["ts"] = (
         pd.to_datetime(df["ts"], utc=True, errors="coerce")
-          .dt.tz_convert(LOCAL_TZ)   # mostra no fuso local
-          .dt.tz_localize(None)      # Plotly/Excel preferem naive
+          .dt.tz_convert(LOCAL_TZ)
+          .dt.tz_localize(None)
     )
     df["value"] = pd.to_numeric(df["value"], errors="coerce")
     return df.dropna(subset=["ts", "value"]).sort_values("ts")
@@ -143,7 +133,6 @@ def load_from_db(db_url: str, start_dt: datetime) -> pd.DataFrame:
     return _sanitize(df)
 
 def fetch_period(db_url: str, start_utc: datetime, end_utc: datetime) -> pd.DataFrame:
-    """Consulta bruta de um período fechado [start, end), já sanitizada."""
     engine = create_engine(db_url, pool_pre_ping=True)
     with engine.connect() as conn:
         q = text("""
@@ -161,49 +150,32 @@ def to_utc(ts_local: pd.Timestamp) -> datetime:
     return ts_local.tz_convert("UTC").to_pydatetime()
 
 def compute_range(choice: str, custom_range: tuple[date, date] | None):
-    """
-    Constrói (start_utc, end_utc, label) a partir da escolha:
-    - 'Últimos 30 dias' / '7 dias' / '1 dia'
-    - 'Período específico' -> usa calendário (inicio, fim)
-    """
     now_local = pd.Timestamp.now(tz=LOCAL_TZ)
-
     if choice == "Últimos 30 dias":
-        start_local = now_local - pd.Timedelta(days=30)
-        end_local = now_local
-        label = "ultimos_30_dias"
+        start_local, end_local, label = now_local - pd.Timedelta(days=30), now_local, "ultimos_30_dias"
     elif choice == "Últimos 7 dias":
-        start_local = now_local - pd.Timedelta(days=7)
-        end_local = now_local
-        label = "ultimos_7_dias"
+        start_local, end_local, label = now_local - pd.Timedelta(days=7), now_local, "ultimos_7_dias"
     elif choice == "Último 1 dia":
-        start_local = now_local - pd.Timedelta(days=1)
-        end_local = now_local
-        label = "ultimo_1_dia"
+        start_local, end_local, label = now_local - pd.Timedelta(days=1), now_local, "ultimo_1_dia"
     else:
-        assert custom_range is not None and len(custom_range) == 2
+        assert custom_range and len(custom_range) == 2
         d_ini, d_fim = custom_range
-        # [início 00:00, dia seguinte 00:00) no fuso local
         start_local = pd.Timestamp(d_ini, tz=LOCAL_TZ)
-        end_local = pd.Timestamp(d_fim + timedelta(days=1), tz=LOCAL_TZ)
+        end_local   = pd.Timestamp(d_fim + timedelta(days=1), tz=LOCAL_TZ)
         label = f"{d_ini:%Y-%m-%d}_a_{d_fim:%Y-%m-%d}"
-
     return to_utc(start_local), to_utc(end_local), label
 
 def build_excel_report(df: pd.DataFrame, label_periodo: str,
                        start_utc: datetime, end_utc: datetime) -> bytes:
-    """Gera .xlsx com abas Resumo/Diario/Horario/Bruto."""
     def _autosize(ws, data: pd.DataFrame):
         for i, col in enumerate(data.columns):
             try:
-                max_len = max(len(str(col)),
-                              *(data[col].astype(str).map(len).tolist()))
+                max_len = max(len(str(col)), *(data[col].astype(str).map(len).tolist()))
             except Exception:
                 max_len = 18
             ws.set_column(i, i, min(max_len + 2, 40))
 
     buf = io.BytesIO()
-
     with pd.ExcelWriter(buf, engine="xlsxwriter",
                         datetime_format="yyyy-mm-dd HH:MM:SS") as xw:
         if df.empty:
@@ -212,11 +184,9 @@ def build_excel_report(df: pd.DataFrame, label_periodo: str,
             _autosize(xw.sheets["Resumo"], vazio)
             return buf.getvalue()
 
-        # colunas auxiliares (datas/horas locais)
         df["data"] = df["ts"].dt.date
         df["hora"] = df["ts"].dt.floor("h")
 
-        # ----- Resumo -----
         last = df.sort_values("ts").groupby("tag", as_index=False).tail(1)
         resumo = (
             df.groupby("tag")
@@ -225,68 +195,44 @@ def build_excel_report(df: pd.DataFrame, label_periodo: str,
                   "media": ("value","mean"),
                   "minimo": ("value","min"),
                   "maximo": ("value","max"),
-              })
-              .reset_index()
-              .merge(
-                  last[["tag","value","ts","unit"]],
-                  on="tag", how="left"
-              )
-              .rename(columns={"value":"ultimo_valor",
-                               "ts":"ultimo_ts",
-                               "unit":"unidade"})
+              }).reset_index()
+              .merge(last[["tag","value","ts","unit"]], on="tag", how="left")
+              .rename(columns={"value":"ultimo_valor","ts":"ultimo_ts","unit":"unidade"})
         )
 
-        # ----- Diário -----
-        diario = (
-            df.groupby(["tag","data"], as_index=False)
-              .agg(**{
-                  "Qtd de Leitura": ("value","count"),
-                  "media": ("value","mean"),
-                  "minimo": ("value","min"),
-                  "maximo": ("value","max"),
-              })
-              .sort_values(["tag","data"])
-        )
+        diario = (df.groupby(["tag","data"], as_index=False)
+                    .agg(**{"Qtd de Leitura":("value","count"),
+                            "media":("value","mean"),
+                            "minimo":("value","min"),
+                            "maximo":("value","max")})
+                    .sort_values(["tag","data"]))
 
-        # ----- Horário -----
-        horario = (
-            df.groupby(["tag","hora"], as_index=False)
-              .agg(**{
-                  "Qtd de Leitura": ("value","count"),
-                  "media": ("value","mean"),
-                  "minimo": ("value","min"),
-                  "maximo": ("value","max"),
-              })
-              .sort_values(["tag","hora"])
-        )
+        horario = (df.groupby(["tag","hora"], as_index=False)
+                    .agg(**{"Qtd de Leitura":("value","count"),
+                            "media":("value","mean"),
+                            "minimo":("value","min"),
+                            "maximo":("value","max")})
+                    .sort_values(["tag","hora"]))
 
-        # ----- Bruto -----
         bruto = df[["ts","tag","unit","value","quality","meta"]].sort_values("ts")
 
-        # Completude por tag = leituras observadas / leituras esperadas no intervalo
         seconds = max(0, int((end_utc - start_utc).total_seconds()))
         esperado = max(1, seconds // FEED_INTERVAL)
-        resumo["completude_%"] = (
-            resumo["Qtd de Leitura"] / esperado * 100
-        ).clip(upper=100).round(1)
+        resumo["completude_%"] = (resumo["Qtd de Leitura"] / esperado * 100).clip(upper=100).round(1)
 
-        # escreve e ajusta largura
         resumo.to_excel(xw, sheet_name="Resumo", index=False)
         diario.to_excel(xw, sheet_name="Diario", index=False)
         horario.to_excel(xw, sheet_name="Horario", index=False)
         bruto.to_excel(xw, sheet_name="Bruto", index=False)
 
-        for name, data in [("Resumo", resumo), ("Diario", diario),
-                           ("Horario", horario), ("Bruto", bruto)]:
+        for name, data in [("Resumo", resumo), ("Diario", diario), ("Horario", horario), ("Bruto", bruto)]:
             ws = xw.sheets[name]
             ws.freeze_panes(1, 1)
             _autosize(ws, data)
 
     return buf.getvalue()
 
-# ============================================================================ #
-# Visual
-# ============================================================================ #
+# ------------------------- Visual -------------------------
 def make_kpi_cards(df: pd.DataFrame):
     latest = df.sort_values("ts").groupby("tag", as_index=False).tail(1)
     if latest.empty:
@@ -356,16 +302,13 @@ def layout(df: pd.DataFrame):
     tags_sel = st.multiselect("Selecione as tags para plotar", TAGS_PADRAO, default=TAGS_PADRAO)
     charts_split(df, tags_sel)
 
-# ============================================================================ #
-# Sidebar / Run
-# ============================================================================ #
+# ------------------------- Sidebar / Run -------------------------
 st.sidebar.header("Banco de Dados")
 if USING_DATABASE_URL:
     st.sidebar.success("Usando DATABASE_URL (Render/Produção)")
 else:
-    st.sidebar.warning("Usando variáveis PG* (Dev/Local)")
+    st.sidebar.warning("Usando Conexão CLP/NodeRed/DBLocal")
 
-# período do viewer
 date_range = st.sidebar.selectbox(
     "Período (viewer)",
     ["Últimos 15 min", "Últimas 2 h", "Últimas 24 h", "Últimos 7 dias"],
@@ -381,10 +324,8 @@ else:
     delta = timedelta(days=7)
 start = datetime.utcnow() - delta
 
-# relatório Excel (períodos prontos / calendário)
 st.sidebar.markdown("---")
 st.sidebar.subheader("Relatório (Excel)")
-
 rep_choice = st.sidebar.radio(
     "Período do relatório",
     ["Últimos 30 dias", "Últimos 7 dias", "Último 1 dia", "Período específico"],
@@ -399,22 +340,18 @@ if rep_choice == "Período específico":
     )
 gen = st.sidebar.button("Gerar Excel")
 
-# refresh configurável
 refresh_s = st.sidebar.number_input("Atualização (s)", 1, 120, 5, 1)
-
 st.caption(f"Fuso: {LOCAL_TZ}  •  Auto-refresh: {int(refresh_s)}s")
 st_autorefresh(interval=int(refresh_s*1000), key="db_refresh")
 
 try:
     ensure_db(DB_URL)
-    # viewer
     df_view = load_from_db(DB_URL, start)
     if df_view.empty:
-        st.warning("Sem dados no intervalo. Publique no MQTT/worker ou amplie o período.")
+        st.warning("Sem dados no intervalo. Publique no worker/feeder ou amplie o período.")
     else:
         layout(df_view)
 
-    # relatório Excel
     if gen:
         start_utc, end_utc, label = compute_range(rep_choice, custom_range)
         df_period = fetch_period(DB_URL, start_utc, end_utc)
@@ -423,6 +360,5 @@ try:
         st.sidebar.success("Relatório pronto.")
         st.sidebar.download_button("Baixar Excel", data=xlsx_bytes, file_name=fname,
                                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-
 except Exception as e:
     st.error(f"Falha ao conectar/carregar: {e}")

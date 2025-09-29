@@ -1,151 +1,106 @@
-# worker/seed_once.py
-import os, math, random
+import os
 from datetime import datetime, timedelta, timezone
+import random
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from sqlalchemy import create_engine, text
 
-# --------- Config DB (envs ou defaults locais) ----------
-PGHOST = os.getenv("PGHOST", "localhost")
-PGPORT = os.getenv("PGPORT", "5432")
-PGUSER = os.getenv("PGUSER", "postgres")
-PGPASSWORD = os.getenv("PGPASSWORD", "postgres")
-PGDATABASE = os.getenv("PGDATABASE", "eta")
-DB_URL = os.getenv(
-    "DB_URL",
-    f"postgresql+psycopg2://{PGUSER}:{PGPASSWORD}@{PGHOST}:{PGPORT}/{PGDATABASE}",
-)
-
-# --------- Janela e granularidade do seed ----------
-HOURS_BACK = int(os.getenv("SEED_HOURS", "2"))          # últimas 2h
-STEP_SECONDS = int(os.getenv("SEED_STEP_SECONDS", "30"))# um ponto a cada 30s
-
-# --------- Tags e unidades ----------
-TAGS = [
-    "qualidade/ph",
-    "decantacao/turbidez",
-    "bombeamento/vazao",
-    "qualidade/cloro",
-    "pressao/linha1",
-    "nivel/reservatorio",
-]
-UNITS = {
-    "qualidade/ph": "pH",
-    "decantacao/turbidez": "NTU",
-    "bombeamento/vazao": "m³/h",
-    "qualidade/cloro": "mg/L",
-    "pressao/linha1": "bar",
-    "nivel/reservatorio": "m",
+TAGS_PADRAO = {
+    "qualidade/ph": ("pH", 6.5, 8.5),
+    "decantacao/turbidez": ("NTU", 0.1, 5.0),
+    "bombeamento/vazao": ("m³/h", 80, 200),
+    "qualidade/cloro": ("mg/L", 0.2, 2.0),
+    "pressao/linha1": ("bar", 1.5, 3.5),
+    "nivel/reservatorio": ("m", 1.0, 5.0),
 }
 
-# --------- DDL / bootstrap ----------
-DDL_SCHEMA = "CREATE SCHEMA IF NOT EXISTS eta;"
-DDL_SENSOR = """
-CREATE TABLE IF NOT EXISTS eta.sensor (
-  id   SERIAL PRIMARY KEY,
-  tag  TEXT NOT NULL UNIQUE,
-  unit TEXT,
-  meta JSONB
-);
-"""
-DDL_MEAS = """
-CREATE TABLE IF NOT EXISTS eta.measurement (
-  id         BIGSERIAL PRIMARY KEY,
-  sensor_id  INTEGER NOT NULL REFERENCES eta.sensor(id) ON DELETE CASCADE,
-  ts         TIMESTAMPTZ NOT NULL,
-  value      DOUBLE PRECISION NOT NULL,
-  quality    TEXT,
-  meta       JSONB,
-  CONSTRAINT uq_sensor_ts UNIQUE(sensor_id, ts)
-);
-"""
-IDX1 = "CREATE INDEX IF NOT EXISTS ix_measurement_ts ON eta.measurement(ts);"
-IDX2 = "CREATE INDEX IF NOT EXISTS ix_measurement_sensor_ts ON eta.measurement(sensor_id, ts DESC);"
+def to_sqlalchemy_url(url: str) -> str:
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
+    if url.startswith("postgresql://") and "postgresql+psycopg://" not in url:
+        url = url.replace("postgresql://", "postgresql+psycopg://", 1)
+    return url
 
-def ensure_db(engine):
+def get_db_url():
+    url = os.getenv("DATABASE_URL", "").strip()
+    if url:
+        return to_sqlalchemy_url(url)
+    host = os.getenv("PGHOST", "localhost")
+    port = os.getenv("PGPORT", "5432")
+    user = os.getenv("PGUSER", "postgres")
+    pwd  = os.getenv("PGPASSWORD", "postgres")
+    db   = os.getenv("PGDATABASE", "eta")
+    return f"postgresql+psycopg://{user}:{pwd}@{host}:{port}/{db}"
+
+def ensure_schema(engine):
     with engine.begin() as conn:
-        conn.execute(text(DDL_SCHEMA))
-        conn.execute(text(DDL_SENSOR))
-        conn.execute(text(DDL_MEAS))
-        conn.execute(text(IDX1))
-        conn.execute(text(IDX2))
-        # sensores padrão
-        for tag in TAGS:
+        conn.execute(text("CREATE SCHEMA IF NOT EXISTS eta;"))
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS eta.sensor(
+              id   SERIAL PRIMARY KEY,
+              tag  TEXT NOT NULL UNIQUE,
+              unit TEXT,
+              meta JSONB
+            );
+        """))
+        conn.execute(text("""
+            CREATE TABLE IF NOT EXISTS eta.measurement(
+              id        BIGSERIAL PRIMARY KEY,
+              sensor_id INT NOT NULL REFERENCES eta.sensor(id) ON DELETE CASCADE,
+              ts        TIMESTAMPTZ NOT NULL,
+              value     DOUBLE PRECISION NOT NULL,
+              quality   TEXT,
+              meta      JSONB,
+              CONSTRAINT uq_sensor_ts UNIQUE(sensor_id, ts)
+            );
+        """))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_measurement_ts ON eta.measurement(ts);"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_measurement_sensor_ts ON eta.measurement(sensor_id, ts DESC);"))
+        for tag, (unit, *_rng) in TAGS_PADRAO.items():
             conn.execute(
-                text("""
-                    INSERT INTO eta.sensor(tag, unit)
-                    VALUES (:tag, :unit)
-                    ON CONFLICT (tag) DO NOTHING;
-                """),
-                {"tag": tag, "unit": UNITS.get(tag)},
+                text("""INSERT INTO eta.sensor(tag, unit)
+                        VALUES (:tag, :unit)
+                        ON CONFLICT(tag) DO NOTHING;"""),
+                {"tag": tag, "unit": unit},
             )
 
-def map_tag_to_id(engine):
+def seed_measurements(engine, minutes=180, step_seconds=30):
+    now = datetime.now(timezone.utc)
+    start = now - timedelta(minutes=minutes)
+
+    with engine.connect() as conn:
+        rows = conn.execute(text("SELECT id, tag FROM eta.sensor;")).fetchall()
+        id_by_tag = {r.tag: r.id for r in rows}
+
+    inserts = []
+    for tag, (unit, lo, hi) in TAGS_PADRAO.items():
+        sensor_id = id_by_tag[tag]
+        t = start
+        val = random.uniform(lo, hi)
+        while t <= now:
+            val += random.uniform(-0.05*(hi-lo), 0.05*(hi-lo))
+            val = max(min(val, hi), lo)
+            inserts.append({"sensor_id": sensor_id, "ts": t, "value": float(val), "quality": "good"})
+            t += timedelta(seconds=step_seconds)
+
     with engine.begin() as conn:
-        rows = conn.execute(text("SELECT id, tag FROM eta.sensor")).fetchall()
-    return {tag: sid for (sid, tag) in rows}
-
-# --------- Geradores sintéticos por tag ----------
-def synth_value(tag: str, i: int) -> float:
-    """Gera valor plausível por tag (base + seno + ruído). i = índice do ponto."""
-    # período maior → variação lenta
-    w = 2 * math.pi / 240  # 240 passos ~ 2h se STEP_SECONDS=30
-    noise = lambda s: random.uniform(-s, s)
-
-    if tag == "qualidade/ph":
-        base, amp = 7.05, 0.25
-        return max(6.5, min(7.8, base + amp * math.sin(w * i) + noise(0.06)))
-    if tag == "decantacao/turbidez":
-        base, amp = 0.7, 0.4
-        return max(0.1, base + amp * abs(math.sin(w * i / 2)) + noise(0.08))
-    if tag == "bombeamento/vazao":
-        base, amp = 180, 60
-        return max(40, base + amp * math.sin(w * i / 1.5) + noise(8))
-    if tag == "qualidade/cloro":
-        base, amp = 2.0, 0.35
-        return max(0.2, base + amp * math.sin(w * i / 1.8) + noise(0.05))
-    if tag == "pressao/linha1":
-        base, amp = 3.1, 0.35
-        return max(1.2, base + amp * math.sin(w * i) + noise(0.03))
-    if tag == "nivel/reservatorio":
-        base, amp = 5.0, 1.2
-        # tendência lenta (encher/esvaziar)
-        trend = 0.4 * math.sin(w * i / 6)
-        return max(0.2, base + amp * math.sin(w * i / 2.2) + trend + noise(0.05))
-    # fallback
-    return 0.0
+        conn.execute(
+            text("""INSERT INTO eta.measurement(sensor_id, ts, value, quality)
+                    VALUES (:sensor_id, :ts, :value, :quality)
+                    ON CONFLICT(sensor_id, ts) DO NOTHING;"""),
+            inserts
+        )
+    print(f"Seed concluído: {len(inserts)} leituras geradas.")
 
 def main():
-    engine = create_engine(DB_URL, pool_pre_ping=True)
-    ensure_db(engine)
-    tag_to_id = map_tag_to_id(engine)
-
-    now = datetime.now(timezone.utc)
-    start = now - timedelta(hours=HOURS_BACK)
-    step = timedelta(seconds=STEP_SECONDS)
-    n = int((now - start) / step)
-
-    rows = []
-    for i in range(n + 1):
-        ts = start + i * step
-        for tag in TAGS:
-            rows.append(
-                {
-                    "sensor_id": tag_to_id[tag],
-                    "ts": ts,
-                    "value": float(synth_value(tag, i)),
-                }
-            )
-
-    insert_sql = text("""
-        INSERT INTO eta.measurement (sensor_id, ts, value)
-        VALUES (:sensor_id, :ts, :value)
-        ON CONFLICT (sensor_id, ts) DO NOTHING;
-    """)
-
-    with engine.begin() as conn:
-        conn.execute(insert_sql, rows)
-
-    print(f"✅ Seed concluído: {len(rows)} pontos gerados para {len(TAGS)} tags.")
+    db_url = get_db_url()
+    print("DB_URL:", db_url.split("@")[-1])  # log sem credencial
+    engine = create_engine(db_url, pool_pre_ping=True)
+    ensure_schema(engine)
+    step = int(os.getenv("FEED_INTERVAL", "5"))
+    seed_measurements(engine, minutes=180, step_seconds=step)
 
 if __name__ == "__main__":
     main()

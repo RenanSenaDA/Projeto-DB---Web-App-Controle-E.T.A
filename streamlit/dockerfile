@@ -1,27 +1,9 @@
-# streamlit/Dockerfile
-FROM python:3.11-slim
-
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
-    PORT=8080 \
-    TZ=America/Fortaleza
+FROM python:3.12-slim
 
 WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
-# deps de sistema para psycopg2
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# instala as libs do app (use o requirements.txt da pasta streamlit)
-COPY streamlit/requirements.txt .
-RUN pip install -r requirements.txt
-
-# copia somente os arquivos do app
-COPY streamlit/ .
-
-EXPOSE 8080
-
-# rode seu arquivo correto (pelo screenshot é streamlit_eta_app.py)
-CMD ["streamlit", "run", "streamlit_eta_app.py", "--server.port=${PORT}", "--server.address=0.0.0.0", "--server.enableCORS=false"]
+COPY streamlit_eta_app.py .
+# porta do Render vai via variável $PORT
+CMD ["streamlit", "run", "streamlit_eta_app.py", "--server.port", "8501", "--server.address", "0.0.0.0"]
