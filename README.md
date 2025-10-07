@@ -4,7 +4,7 @@
 
 O **Projeto Webapp - E.T.A** tem como objetivo criar uma solução integrada para **monitoramento em tempo real de Estações de Tratamento de Água (ETA)**, conectando sensores industriais a um sistema centralizado de visualização e análise.  
 
-O projeto busca transformar dados brutos coletados por CLPs e PLCs em **informações acionáveis**, permitindo acompanhamento de indicadores de qualidade, desempenho dos equipamentos e geração de relatórios de eficiência.
+O projeto busca transformar dados brutos coletados por PLCs em **informações acionáveis**, permitindo acompanhamento de indicadores de qualidade, desempenho dos equipamentos e geração de relatórios de eficiência.
 
 ---
 
@@ -71,6 +71,7 @@ O projeto propõe um **sistema centralizado**, capaz de integrar medições de d
   - **Alarmes e eventos** (limiares configuráveis)
   - **KPIs de operação**: turbidez, TMP, recovery, rejeição, consumo de energia, vazão
   - **Análises preditivas** futuras (ex.: fouling, degradação de membranas)
+  - **Autenticação de Usuário** para administradores
 
 ---
 
@@ -94,10 +95,15 @@ O projeto propõe um **sistema centralizado**, capaz de integrar medições de d
 
 ## 📅 Próximos Passos
 
-1. Implementar **gestão de alarmes e eventos** no Node-RED/Streamlit  
-2. Normalizar e padronizar KPIs conforme baseline  
-3. Testar integrações com **Cloudflare Tunnel** para acesso externo seguro  
-4. Documentar casos de uso para ETA, UF e OR/RO  
+1. Integração em campo: conectar a uma ETA real (PLC/CLP via Modbus/TCP ou OPC UA), mapear tags, calibrar unidades e validar KPIs com equipe de processo.
+
+2. Subir para a nuvem (AWS):
+
+3. Escalabilidade & custos: particionamento/TimescaleDB, retenção/arquivamento em S3 (Glue/Athena), backup e DR (RPO/RTO).
+
+4. Multi-site: suporte a múltiplas ETAs (tabela site, segregação por tenant) e perfis por planta.
+
+5. UX: dashboards por perfil (operador, manutenção, gestor) e relatórios agendados (PDF/Excel).
 
 ---
 
@@ -208,7 +214,7 @@ O app ficará disponível em:
 http://localhost:8501
 
 
-Se usar Docker Compose:
+🏷️ Versões
 
-docker-compose up app
+v1.0-fase1 — autenticação + alertas por limiar + ingestão Node-RED + dashboards + relatórios básicos.
 
