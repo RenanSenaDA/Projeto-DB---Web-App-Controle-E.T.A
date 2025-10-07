@@ -4,3 +4,4 @@ SQLAlchemy>=2.0
 python-dateutil>=2.9
 python-dotenv>=1.0
 psycopg[binary]==3.2.10
+passlib[bcrypt]>=1.7
