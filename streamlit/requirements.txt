@@ -6,11 +6,11 @@ SQLAlchemy>=2.0
 python-dateutil>=2.9
 altair>=5.0
 plotly>=5.20
-xlswriter>=3.1
+XlsxWriter>=3.1
 python-dotenv>=1.0
 
 # --- Conexão e segurança ---
-psycopg[binary]>=3.2.10
+psycopg2-binary==2.9.9
 passlib[bcrypt]>=1.7.4
 bcrypt==4.0.1
 
