@@ -1,93 +1,10 @@
-version: "3.9"
-
 services:
-  db:
-    image: postgres:16
-    environment:
-      POSTGRES_DB: ${PGDATABASE:-eta}
-      POSTGRES_USER: ${PGUSER:-postgres}
-      POSTGRES_PASSWORD: ${PGPASSWORD:-postgres}
-    ports:
-      - "${PGPORT:-5432}:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${PGUSER:-postgres} -d ${PGDATABASE:-eta}"]
-      interval: 5s
-      timeout: 3s
-      retries: 20
-
   app:
     build:
-      context: ..
-      dockerfile: streamlit/dockerfile
-    env_file: [.env]              # usa as variáveis abaixo
-    depends_on:
-      db:
-        condition: service_healthy
+      context: /home/ubuntu/eta-app/streamlit
+      dockerfile: dockerfile
+    env_file:
+      - /home/ubuntu/eta-app/streamlit/.env
     ports:
       - "8501:8501"
-
-  feeder:
-    build:
-      context: ..
-      dockerfile: worker/dockerfile
-    env_file: [.env]
-    depends_on:
-      db:
-        condition: service_healthy
     restart: unless-stopped
-
-  mosquitto:
-    image: eclipse-mosquitto:2
-    ports:
-      - "1883:1883"
-    volumes:
-      # teu arquivo se chama "mosquito.conf" mesmo — montamos com o nome esperado no contêiner
-      - ./mosquito.conf:/mosquitto/config/mosquitto.conf:ro
-
-  nodered:
-    image: nodered/node-red:latest
-    ports:
-      - "1880:1880"
-    environment:
-      - TZ=${TZ:-America/Fortaleza}
-      - PGHOST=db
-      - PGPORT=5432
-      - PGUSER=${PGUSER:-postgres}
-      - PGPASSWORD=${PGPASSWORD:-postgres}
-      - PGDATABASE=${PGDATABASE:-eta}
-      - MQTT_URL=mqtt://mosquitto:1883
-    depends_on:
-      db:
-        condition: service_healthy
-      mosquitto:
-        condition: service_started
-    volumes:
-      - nodered_data:/data
-
-  grafana:
-    image: grafana/grafana:latest
-    ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    depends_on:
-      db:
-        condition: service_healthy
-
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    ports:
-      - "5050:80"
-    environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@local
-      - PGADMIN_DEFAULT_PASSWORD=admin
-    depends_on:
-      db:
-        condition: service_healthy
-
-volumes:
-  pgdata:
-  nodered_data:

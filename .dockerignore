@@ -1,0 +1,21 @@
+# Ignorar ambiente virtual e metadados
+.venv
+__pycache__
+*.pyc
+*.pyo
+*.db
+*.sqlite
+*.log
+
+# Ignorar pastas locais e de config
+.git
+.gitignore
+.env
+.DS_Store
+*.zip
+*.tar
+*.gz
+
+# Ignorar caches de editor
+.vscode
+.idea

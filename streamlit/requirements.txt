@@ -1,12 +1,23 @@
+# --- Bibliotecas principais ---
 streamlit>=1.34
 pandas>=2.0
 numpy>=1.24
 SQLAlchemy>=2.0
 python-dateutil>=2.9
 altair>=5.0
-python-dotenv>=1.0
 plotly>=5.20
-xlsxwriter>=3.1
+xlswriter>=3.1
+python-dotenv>=1.0
+
+# --- Conexão e segurança ---
+psycopg[binary]>=3.2.10
+passlib[bcrypt]>=1.7.4
+bcrypt==4.0.1
+
+# --- Autenticação e UI ---
+streamlit-authenticator
+streamlit-aggrid
 streamlit-autorefresh==1.0.1
-psycopg[binary]==3.2.10
-passlib[bcrypt]>=1.7
+
+# --- Extras úteis ---
+openpyxl>=3.1

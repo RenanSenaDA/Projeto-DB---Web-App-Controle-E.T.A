@@ -1,0 +1,94 @@
+:root{
+  /* paleta azul-petróleo igual aos mockups */
+  --bg:#071d25;           /* fundo da página */
+  --panel:#0c2731;        /* barras/painéis */
+  --card:#0d2e3b;         /* cards KPI */
+  --stroke:#133a48;       /* bordas */
+  --primary:#16a1a6;      /* detalhe ativo */
+  --text:#e9f1f7;         /* texto principal */
+  --muted:#9fb2bf;
+  --ok:#1db954; --warn:#f2b01e; --crit:#e5534b;
+  --radius:16px;
+  --shadow:0 14px 32px rgba(0,0,0,.28), 0 2px 8px rgba(0,0,0,.38);
+}
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap");
+html, body { background:var(--bg)!important; }
+body, * { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+section.main { padding-top: 0!important; }
+.block-container{ max-width:1200px; }
+
+/* Header */
+.navbar{
+  display:flex; align-items:center; justify-content:space-between;
+  background:var(--panel); border:1px solid var(--stroke); border-radius:20px;
+  padding:14px 18px; margin:18px 0 8px 0; box-shadow:var(--shadow);
+}
+.brand{ display:flex; align-items:center; gap:10px; font-weight:800; font-size:18px; color:var(--text); }
+.brand .logo{ width:22px; height:22px; background:var(--primary); border-radius:8px; display:inline-block; }
+.time{ color:#a7bdc8; font-size:12px; }
+
+/* Abas (st.tabs) como navbar */
+[data-baseweb="tab-list"]{
+  gap: 22px; padding: 8px 14px !important; margin-bottom: 12px;
+  background: var(--panel); border: 1px solid var(--stroke);
+  border-radius: 14px; box-shadow: var(--shadow);
+}
+button[role="tab"]{
+  border-radius: 10px !important; background: transparent !important;
+  color: #d0e6ee !important; padding: 8px 12px !important;
+  border: 1px solid transparent !important; font-weight: 700; letter-spacing:.2px;
+}
+button[aria-selected="true"][role="tab"]{
+  color: var(--text) !important; background: #0d2e3b !important;
+  border-color: var(--stroke) !important; box-shadow: inset 0 -2px 0 var(--primary);
+}
+
+/* Títulos, cards e badges */
+h1,h2,h3,h4 { color:var(--text)!important; }
+h1{ font-size:30px; margin:10px 0 18px; font-weight:800; }
+.hr{ height:1px; background:var(--stroke); margin:16px 0 22px 0; border-radius:1px; }
+.card{ background:var(--panel); border:1px solid var(--stroke); border-radius:20px; padding:16px; box-shadow:var(--shadow); }
+.kpi{  background:var(--card);  border:1px solid var(--stroke); border-radius:20px; padding:16px; box-shadow:var(--shadow); }
+.kpi .title{ color:#c6d8e1; font-size:13px; } .kpi .value{ font-size:28px; font-weight:800; margin:8px 0 6px; color:var(--text); }
+.badge{ display:inline-block; padding:6px 10px; border-radius:10px; font-weight:800; font-size:12px; border:1px solid transparent; letter-spacing:.2px; }
+.badge.ok{   color:var(--ok);   background:rgba(29,185,84,.12);   border-color:rgba(29,185,84,.35); }
+.badge.warn{ color:var(--warn); background:rgba(242,176,30,.12); border-color:rgba(242,176,30,.35); }
+.badge.crit{ color:var(--crit); background:rgba(229,83,75,.12);  border-color:rgba(229,83,75,.35); }
+
+/* Inputs/botões */
+.stSelectbox, .stDateInput, .stTextInput, .stNumberInput{ border-radius:14px!important; }
+.stButton>button, button[kind="secondary"]{
+  border-radius:12px!important; border:1px solid var(--stroke)!important;
+  background:#0d2e3b!important; color:var(--text)!important; font-weight:700!important;
+}
+
+/* Plotly */
+.js-plotly-plot .plotly, .js-plotly-plot .main-svg{
+  background:var(--panel)!important; color:var(--text)!important;
+}
+
+/* Tabela HTML (Alarmes) */
+.table{
+  width:100%; border-collapse:separate; border-spacing:0;
+  background:var(--panel); border:1px solid var(--stroke); border-radius:20px;
+  box-shadow:var(--shadow); overflow:hidden;
+}
+.table thead th{
+  background:#0d2e3b; color:#eef7fb; text-transform:uppercase; font-size:12px; letter-spacing:.4px;
+  padding:12px 14px; border-bottom:1px solid #174554;
+}
+.table td{
+  padding:12px 14px; border-bottom:1px solid #174554; color:#d7e8f1; font-size:14px;
+}
+.table tr:last-child td{ border-bottom:none; }
+.pill{ display:inline-block; padding:4px 10px; border-radius:999px; font-weight:800; font-size:12px; }
+.pill.crit{  background:#ff6b5f33; color:#ff6b5f; }
+.pill.alto{  background:#f2b01e33; color:#f2b01e; }
+.pill.medio{ background:#6ea8fe33; color:#6ea8fe; }
+
+/* DataFrame */
+.dataframe, .stDataFrame { background:transparent!important; }
+.dataframe th, .dataframe td{ color:#d7e8f1!important; border-color:#174554!important; }
+
+/* Esconde nav lateral automática */
+[data-testid='stSidebarNav']{ display:none!important; }
