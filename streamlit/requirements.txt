@@ -21,3 +21,5 @@ streamlit-autorefresh==1.0.1
 
 # --- Extras úteis ---
 openpyxl>=3.1
+requests
+

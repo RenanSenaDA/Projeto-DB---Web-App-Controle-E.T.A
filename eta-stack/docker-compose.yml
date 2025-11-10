@@ -1,10 +1,10 @@
 services:
   app:
     build:
-      context: /home/ubuntu/eta-app/streamlit
+      context: ../streamlit
       dockerfile: dockerfile
     env_file:
-      - /home/ubuntu/eta-app/streamlit/.env
+      - ../streamlit/.env
     ports:
       - "8501:8501"
     restart: unless-stopped
