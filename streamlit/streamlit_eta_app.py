@@ -2,10 +2,18 @@ import os
 import io
 from datetime import datetime, timedelta, date
 from pathlib import Path
+
 from alerts_email import enviar_alerta_para_destinatarios_padrao
 import pandas as pd
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
+
+# tentamos importar o módulo de WhatsApp, mas não obrigamos
+try:
+    from alerts_whatsapp import enviar_alerta_whatsapp_para_destinatarios_padrao
+    HAVE_WPP = True
+except Exception:
+    HAVE_WPP = False
 
 # ------------------------- .env robusto -------------------------
 from dotenv import load_dotenv, find_dotenv
@@ -525,7 +533,7 @@ def layout_alertas(df: pd.DataFrame, limits: dict[str, float]):
 
     tabs = st.tabs(tags_existentes)
 
-    # cooldown em minutos entre e-mails por tag
+    # cooldown em minutos entre notificações por tag (email/whatsapp)
     cooldown_min = int(os.getenv("ALERT_EMAIL_COOLDOWN_MIN", "10"))
 
     for tab, tag in zip(tabs, tags_existentes):
@@ -556,12 +564,11 @@ def layout_alertas(df: pd.DataFrame, limits: dict[str, float]):
                         f"⚠️ Alerta: valor atual **{last_val:.2f}** acima do limite **{limite:.2f}**."
                     )
 
-                    # --------- ENVIO DE E-MAIL COM COOLDOWN ---------
+                    # --------- ENVIO DE NOTIFICAÇÕES COM COOLDOWN ---------
                     now = datetime.utcnow()
-                    state_key = f"last_email_sent_{tag}"
+                    state_key = f"last_alert_sent_{tag}"
                     last_sent = st.session_state.get(state_key)
 
-                    cooldown_min = int(os.getenv("ALERT_EMAIL_COOLDOWN_MIN", "30"))
                     deve_enviar = (
                         last_sent is None
                         or (now - last_sent).total_seconds() > cooldown_min * 60
@@ -569,33 +576,53 @@ def layout_alertas(df: pd.DataFrame, limits: dict[str, float]):
 
                     if deve_enviar:
                         valor_str = f"{last_val:.3f} {unit}" if unit else f"{last_val:.3f}"
+                        ts_str = f"{last_ts:%d/%m/%y %H:%M:%S}"
                         msg_extra = (
                             f"Tag {tag} acima do limite {limite:.2f}. "
-                            f"Última leitura em {last_ts:%d/%m/%y %H:%M:%S}."
+                            f"Última leitura em {ts_str}."
                         )
 
+                        email_ok = False
+                        wpp_ok = False
+
+                        # E-mail
                         try:
-                            ok = enviar_alerta_para_destinatarios_padrao(
+                            email_ok = enviar_alerta_para_destinatarios_padrao(
                                 equipamento=tag,
                                 valor_kpi=valor_str,
                                 mensagem_extra=msg_extra,
                             )
-                            if ok:
-                                st.session_state[state_key] = now  # só grava cooldown se deu certo
-                                st.info("✉️ Alerta enviado por e-mail aos responsáveis.")
-                            else:
-                                st.warning("Não foi possível enviar o e-mail de alerta.")
                         except Exception as e:
                             st.warning(f"Falha ao tentar enviar e-mail de alerta: {e}")
+
+                        # WhatsApp (se módulo estiver disponível)
+                        if HAVE_WPP:
+                            try:
+                                wpp_ok = enviar_alerta_whatsapp_para_destinatarios_padrao(
+                                    equipamento=tag,
+                                    valor_kpi=valor_str,
+                                    limite=limite,
+                                    timestamp=ts_str,
+                                )
+                            except Exception as e:
+                                st.warning(f"Falha ao tentar enviar alerta via WhatsApp: {e}")
+
+                        if email_ok or wpp_ok:
+                            st.session_state[state_key] = now  # grava cooldown
+                            if email_ok and wpp_ok:
+                                st.info("✉️📲 Alerta enviado por e-mail e WhatsApp aos responsáveis.")
+                            elif email_ok:
+                                st.info("✉️ Alerta enviado por e-mail aos responsáveis.")
+                            elif wpp_ok:
+                                st.info("📲 Alerta enviado por WhatsApp aos responsáveis.")
+                        else:
+                            st.warning("Não foi possível enviar o alerta (e-mail/WhatsApp).")
                     else:
                         st.caption(
-                            f"Alerta por e-mail já enviado recentemente "
+                            f"Alerta já enviado recentemente para esta tag "
                             f"(cooldown {cooldown_min} min)."
                         )
                     # -------------------------------------------------
-
-                    # -------------------------------------------------
-
                 else:
                     st.success(
                         f"✅ Valor atual **{last_val:.2f}** dentro do limite (**≤ {limite:.2f}**)."
@@ -656,7 +683,7 @@ if date_range.startswith("Últimos 15"):
     delta = timedelta(minutes=15)
 elif date_range.startswith("Últimas 2"):
     delta = timedelta(hours=2)
-elif date_range.startswith("Últimas 24"):
+elif date_range.startswith("Últimos 24"):
     delta = timedelta(hours=24)
 else:
     delta = timedelta(days=7)
