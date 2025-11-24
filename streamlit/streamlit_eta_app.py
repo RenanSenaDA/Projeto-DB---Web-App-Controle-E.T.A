@@ -2,18 +2,20 @@ import os
 import io
 from datetime import datetime, timedelta, date
 from pathlib import Path
-
-from alerts_email import enviar_alerta_para_destinatarios_padrao
+# from alerts_email import enviar_alerta_para_destinatarios_padrao  # não usamos mais aqui
 import pandas as pd
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
+import psycopg2
 
-# tentamos importar o módulo de WhatsApp, mas não obrigamos
-try:
-    from alerts_whatsapp import enviar_alerta_whatsapp_para_destinatarios_padrao
-    HAVE_WPP = True
-except Exception:
-    HAVE_WPP = False
+def get_conn():
+    return psycopg2.connect(
+        host=os.getenv("DB_HOST"),
+        port=os.getenv("DB_PORT"),
+        dbname=os.getenv("POSTGRES_DB"),
+        user=os.getenv("POSTGRES_USER"),
+        password=os.getenv("POSTGRES_PASSWORD"),
+    )
 
 # ------------------------- .env robusto -------------------------
 from dotenv import load_dotenv, find_dotenv
@@ -28,7 +30,7 @@ for _extra in [_base_dir / ".env", _base_dir.parent / ".env", _base_dir.parent /
 
 # ------------------------- App base -------------------------
 st.set_page_config(page_title="ETA - Monitoramento", layout="wide")
-st.title("🌊 Plantsight — Monitoramento e Qualidade da Água")
+st.title("🌊 Aqualink — Monitoramento e Qualidade da Água")
 
 LOCAL_TZ = os.getenv("LOCAL_TZ", os.getenv("TZ", "America/Fortaleza"))
 FEED_INTERVAL = int(os.getenv("FEED_INTERVAL", "5"))
@@ -63,13 +65,14 @@ DEFAULT_UNITS = {
     "pressao/linha1": "bar",
     "nivel/reservatorio": "m",
 }
+# Defaults iniciais (usados só como fallback/seed)
 ALERT_DEFAULTS = {
     "qualidade/ph": 7.00,
-    "decantacao/turbidez": 5.00,
-    "bombeamento/vazao": 500.00,
-    "qualidade/cloro": 2.00,
-    "pressao/linha1": 6.00,
-    "nivel/reservatorio": 10.00,
+    "decantacao/turbidez": 10.00,
+    "bombeamento/vazao": 300.00,
+    "qualidade/cloro": 900.00,
+    "pressao/linha1": 5.00,
+    "nivel/reservatorio": 22000.00,
 }
 
 # ------------------------- Helpers DB -------------------------
@@ -78,8 +81,8 @@ def to_sqlalchemy_url(url: str) -> str:
         return url
     if url.startswith("postgres://"):
         url = url.replace("postgres://", "postgresql://", 1)
-    if url.startswith("postgresql://") and "postgresql+psycopg://" not in url:
-        url = url.replace("postgresql://", "postgresql+psycopg://", 1)
+    if url.startswith("postgresql://") and "postgresql+psycopg2://" not in url:
+        url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
     return url
 
 
@@ -92,7 +95,7 @@ def get_db_url() -> str:
     user = os.getenv("PGUSER", "postgres")
     pwd = os.getenv("PGPASSWORD", "postgres")
     db = os.getenv("PGDATABASE", "eta")
-    return f"postgresql+psycopg://{user}:{pwd}@{host}:{port}/{db}"
+    return f"postgresql+psycopg2://{user}:{pwd}@{host}:{port}/{db}"
 
 
 DB_URL = get_db_url()
@@ -181,6 +184,54 @@ def ensure_db(db_url: str):
         )
         conn.execute(text("CREATE INDEX IF NOT EXISTS ix_app_user_email ON eta.app_user(lower(email));"))
 
+        # Tabela de limites de alerta
+        conn.execute(
+            text(
+                """
+            CREATE TABLE IF NOT EXISTS eta.config_limites (
+              tag        TEXT PRIMARY KEY,
+              limite     DOUBLE PRECISION NOT NULL,
+              updated_at TIMESTAMPTZ DEFAULT now()
+            );
+        """
+            )
+        )
+        # Seed dos limites iniciais (caso não existam)
+        for tag, limite in ALERT_DEFAULTS.items():
+            conn.execute(
+                text(
+                    """
+                    INSERT INTO eta.config_limites(tag, limite)
+                    VALUES (:tag, :limite)
+                    ON CONFLICT(tag) DO NOTHING;
+                """
+                ),
+                {"tag": tag, "limite": limite},
+            )
+
+        # Tabela de controle de alarmes (se ainda não existir)
+        conn.execute(
+            text(
+                """
+            CREATE TABLE IF NOT EXISTS config_sistema (
+              id             INT PRIMARY KEY,
+              alarms_enabled BOOLEAN DEFAULT TRUE,
+              updated_at     TIMESTAMPTZ DEFAULT now()
+            );
+        """
+            )
+        )
+        # Garante o registro id=1
+        conn.execute(
+            text(
+                """
+            INSERT INTO config_sistema(id, alarms_enabled)
+            VALUES (1, TRUE)
+            ON CONFLICT (id) DO NOTHING;
+        """
+            )
+        )
+
         # Seed admin (usa pbkdf2_sha256)
         admin_email = os.getenv("ADMIN_EMAIL", "").strip().lower()
         admin_name = os.getenv("ADMIN_NAME", "Admin")
@@ -199,6 +250,72 @@ def ensure_db(db_url: str):
                     ),
                     {"e": admin_email, "n": admin_name, "p": pwd_hash},
                 )
+
+
+# ------------------------- Helpers: config_sistema -------------------------
+def get_alarm_status():
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute("SELECT alarms_enabled FROM config_sistema WHERE id = 1;")
+    val = cur.fetchone()[0]
+    cur.close()
+    conn.close()
+    return bool(val)
+
+
+def set_alarm_status(new_status: bool):
+    conn = get_conn()
+    cur = conn.cursor()
+    cur.execute(
+        """
+        UPDATE config_sistema
+        SET alarms_enabled = %s, updated_at = NOW()
+        WHERE id = 1;
+    """,
+        (new_status,),
+    )
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+# ------------------------- Helpers: limites (eta.config_limites) -----------
+def load_limits_from_db() -> dict:
+    """Carrega limites da tabela eta.config_limites."""
+    if not HAVE_SQLA:
+        raise RuntimeError("SQLAlchemy não está instalado.")
+    engine = create_engine(DB_URL, pool_pre_ping=True)
+    limits_db: dict[str, float] = {}
+    with engine.connect() as conn:
+        rows = conn.execute(text("SELECT tag, limite FROM eta.config_limites;")).fetchall()
+        for r in rows:
+            limits_db[r._mapping["tag"]] = float(r._mapping["limite"])
+    # Garante que todas as TAGS_PADRAO tenham valor
+    for tag in TAGS_PADRAO:
+        if tag not in limits_db:
+            limits_db[tag] = ALERT_DEFAULTS.get(tag, 0.0)
+    return limits_db
+
+
+def save_limits_to_db(limits: dict[str, float]):
+    """Salva (upsert) limites informados em eta.config_limites."""
+    if not HAVE_SQLA:
+        raise RuntimeError("SQLAlchemy não está instalado.")
+    engine = create_engine(DB_URL, pool_pre_ping=True)
+    with engine.begin() as conn:
+        for tag, limite in limits.items():
+            conn.execute(
+                text(
+                    """
+                    INSERT INTO eta.config_limites(tag, limite)
+                    VALUES (:tag, :limite)
+                    ON CONFLICT(tag) DO UPDATE
+                    SET limite = EXCLUDED.limite,
+                        updated_at = now();
+                """
+                ),
+                {"tag": tag, "limite": float(limite)},
+            )
 
 
 # ------------------------- Auth helpers -------------------------
@@ -222,6 +339,7 @@ def auth_verify_password(plain: str, hashed: str) -> bool:
 
 
 def require_login():
+    # se já está logado, retorna direto
     if "user" in st.session_state and st.session_state["user"] is not None:
         return st.session_state["user"]
 
@@ -261,7 +379,8 @@ def logout_button():
     with st.sidebar:
         if st.button("Sair", use_container_width=True):
             st.session_state["user"] = None
-            st.experimental_rerun()
+            # Streamlit moderno -> st.rerun()
+            st.rerun()
 
 
 # ------------------------- Utils/Pandas -------------------------
@@ -435,7 +554,7 @@ def make_kpi_cards(df: pd.DataFrame):
             label = f"{row.tag} ({unit})" if unit else f"{row.tag}"
             st.metric(
                 label=label,
-                value=f"{row.value:.3f}",
+                value=f"{row.value:.2f}",
                 help=f"Última leitura em {row.ts:%d/%m/%y %H:%M:%S}",
             )
 
@@ -476,9 +595,9 @@ def charts_split(df: pd.DataFrame, tags: list[str], limits: dict[str, float] | N
         last = dft.iloc[-1]
         titulo_hora = f"{last['ts']:%d/%m/%y %H:%M:%S}"
         title = (
-            f"{tag} ({unit}) • Último: {last['value']:.3f} às {titulo_hora}"
+            f"{tag} ({unit}) • Último: {last['value']:.2f} às {titulo_hora}"
             if unit
-            else f"{tag} • Último: {last['value']:.3f} às {titulo_hora}"
+            else f"{tag} • Último: {last['value']:.2f} às {titulo_hora}"
         )
         y_min, y_max = float(dft["value"].min()), float(dft["value"].max())
         pad = (y_max - y_min) * 0.08 if y_max > y_min else 1.0
@@ -533,9 +652,6 @@ def layout_alertas(df: pd.DataFrame, limits: dict[str, float]):
 
     tabs = st.tabs(tags_existentes)
 
-    # cooldown em minutos entre notificações por tag (email/whatsapp)
-    cooldown_min = int(os.getenv("ALERT_EMAIL_COOLDOWN_MIN", "10"))
-
     for tab, tag in zip(tabs, tags_existentes):
         with tab:
             dft = df[df["tag"] == tag].sort_values("ts")
@@ -553,76 +669,18 @@ def layout_alertas(df: pd.DataFrame, limits: dict[str, float]):
 
             st.metric(
                 f"{tag} ({unit})" if unit else tag,
-                f"{last_val:.3f}",
+                f"{last_val:.2f}",
                 help=f"Última leitura em {last_ts:%d/%m/%y %H:%M:%S}",
             )
 
             limite = limits.get(tag, None)
             if limite is not None:
+                # Somente alerta visual – quem envia e-mail/WhatsApp é o worker 24/7
                 if last_val > limite:
                     st.error(
-                        f"⚠️ Alerta: valor atual **{last_val:.2f}** acima do limite **{limite:.2f}**."
+                        f"⚠️ Alerta: valor atual **{last_val:.2f}** acima do limite **{limite:.2f}**.\n\n"
+                        "Os alarmes já estão sendo tratados pelo motor 24/7 (worker)."
                     )
-
-                    # --------- ENVIO DE NOTIFICAÇÕES COM COOLDOWN ---------
-                    now = datetime.utcnow()
-                    state_key = f"last_alert_sent_{tag}"
-                    last_sent = st.session_state.get(state_key)
-
-                    deve_enviar = (
-                        last_sent is None
-                        or (now - last_sent).total_seconds() > cooldown_min * 60
-                    )
-
-                    if deve_enviar:
-                        valor_str = f"{last_val:.3f} {unit}" if unit else f"{last_val:.3f}"
-                        ts_str = f"{last_ts:%d/%m/%y %H:%M:%S}"
-                        msg_extra = (
-                            f"Tag {tag} acima do limite {limite:.2f}. "
-                            f"Última leitura em {ts_str}."
-                        )
-
-                        email_ok = False
-                        wpp_ok = False
-
-                        # E-mail
-                        try:
-                            email_ok = enviar_alerta_para_destinatarios_padrao(
-                                equipamento=tag,
-                                valor_kpi=valor_str,
-                                mensagem_extra=msg_extra,
-                            )
-                        except Exception as e:
-                            st.warning(f"Falha ao tentar enviar e-mail de alerta: {e}")
-
-                        # WhatsApp (se módulo estiver disponível)
-                        if HAVE_WPP:
-                            try:
-                                wpp_ok = enviar_alerta_whatsapp_para_destinatarios_padrao(
-                                    equipamento=tag,
-                                    valor_kpi=valor_str,
-                                    limite=limite,
-                                    timestamp=ts_str,
-                                )
-                            except Exception as e:
-                                st.warning(f"Falha ao tentar enviar alerta via WhatsApp: {e}")
-
-                        if email_ok or wpp_ok:
-                            st.session_state[state_key] = now  # grava cooldown
-                            if email_ok and wpp_ok:
-                                st.info("✉️📲 Alerta enviado por e-mail e WhatsApp aos responsáveis.")
-                            elif email_ok:
-                                st.info("✉️ Alerta enviado por e-mail aos responsáveis.")
-                            elif wpp_ok:
-                                st.info("📲 Alerta enviado por WhatsApp aos responsáveis.")
-                        else:
-                            st.warning("Não foi possível enviar o alerta (e-mail/WhatsApp).")
-                    else:
-                        st.caption(
-                            f"Alerta já enviado recentemente para esta tag "
-                            f"(cooldown {cooldown_min} min)."
-                        )
-                    # -------------------------------------------------
                 else:
                     st.success(
                         f"✅ Valor atual **{last_val:.2f}** dentro do limite (**≤ {limite:.2f}**)."
@@ -640,9 +698,21 @@ def layout_alertas(df: pd.DataFrame, limits: dict[str, float]):
                     st.info("Nenhuma ocorrência acima do limite no período.")
 
 
-def layout(df: pd.DataFrame, limits: dict[str, float], user: dict):
+def layout(df: pd.DataFrame, limits: dict[str, float], user: dict, alarms_on: bool):
     with st.sidebar:
         st.caption(f"👤 {user['name']} • {user['email']} • role: {user['role']}")
+        st.markdown("### 🔔 Status dos Alarmes (worker 24/7)")
+        if alarms_on:
+            st.success("Alarmes **ATIVADOS** ✔️")
+            if st.button("Desativar Alarmes"):
+                set_alarm_status(False)
+                st.rerun()
+        else:
+            st.error("Alarmes **DESATIVADOS** ❌")
+            if st.button("Ativar Alarmes"):
+                set_alarm_status(True)
+                st.experimental_rerun()
+
     layout_alertas(df, limits)
     st.divider()
     st.subheader("KPIs (últimas leituras por tag)")
@@ -658,7 +728,7 @@ def layout(df: pd.DataFrame, limits: dict[str, float], user: dict):
 # ------------------------- Sidebar / Run -------------------------
 st.sidebar.header("Banco de Dados")
 
-# Prepara DB + seed admin
+# Prepara DB + seed admin, limites e config_sistema
 try:
     ensure_db(DB_URL)
 except Exception as e:
@@ -689,19 +759,25 @@ else:
     delta = timedelta(days=7)
 start = datetime.utcnow() - delta
 
-# Alertas por tag
+# Alertas por tag (usando valores persistidos em eta.config_limites)
 st.sidebar.markdown("---")
 st.sidebar.subheader("Alertas (limites por tag)")
+
+current_limits = load_limits_from_db()
 limits: dict[str, float] = {}
 for tag in TAGS_PADRAO:
-    default = ALERT_DEFAULTS.get(tag, 0.0)
+    default = current_limits.get(tag, ALERT_DEFAULTS.get(tag, 0.0))
     limits[tag] = st.sidebar.number_input(
         f"Limite • {tag}",
         value=float(default),
         step=0.1,
         format="%.2f",
-        help=f"Dispara alerta quando {tag} > limite",
+        help=f"Dispara alerta quando {tag} > limite (worker 24/7).",
     )
+
+# Salva sempre que houver mudança (simples e direto)
+if limits != current_limits:
+    save_limits_to_db(limits)
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("Relatório (Excel)")
@@ -725,12 +801,14 @@ st_autorefresh(interval=int(refresh_s * 1000), key="db_refresh")
 
 try:
     df_view = load_from_db(DB_URL, start)
+    alarms_on = get_alarm_status()
+
     if df_view.empty:
         st.warning(
             "Sem dados no intervalo. Publique no worker/feeder ou amplie o período."
         )
     else:
-        layout(df_view, limits=limits, user=user)
+        layout(df_view, limits=limits, user=user, alarms_on=alarms_on)
 
     if gen:
         start_utc, end_utc, label = compute_range(rep_choice, custom_range)

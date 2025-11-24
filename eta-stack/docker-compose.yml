@@ -8,3 +8,12 @@ services:
     ports:
       - "8501:8501"
     restart: unless-stopped
+
+  alarm-worker:
+    build:
+      context: ../worker
+      dockerfile: dockerfile
+    env_file:
+      - ../streamlit/.env
+    command: ["python", "-u", "alarm_worker.py"]
+    restart: unless-stopped

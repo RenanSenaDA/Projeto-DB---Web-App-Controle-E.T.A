@@ -8,7 +8,7 @@ altair>=5.0
 plotly>=5.20
 XlsxWriter>=3.1
 python-dotenv>=1.0
-
+psycopg2-binary
 # --- Conexão e segurança ---
 psycopg2-binary==2.9.9
 passlib[bcrypt]>=1.7.4
