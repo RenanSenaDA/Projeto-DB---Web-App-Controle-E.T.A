@@ -75,6 +75,101 @@ ALERT_DEFAULTS = {
     "nivel/reservatorio": 22000.00,
 }
 
+# ------------------------- Lógica ACIMA / ABAIXO (igual ao worker) -------------------------
+
+TIPO_LIMITE_ACIMA = "ACIMA"
+TIPO_LIMITE_ABAIXO = "ABAIXO"
+
+# mesmo conceito do worker: tipo "ph", "nivel", etc.
+TIPO_LIMITE_POR_TIPO = {
+    "ph": TIPO_LIMITE_ACIMA,
+    "pressao": TIPO_LIMITE_ACIMA,
+    "turbidez": TIPO_LIMITE_ACIMA,
+    "cloro": TIPO_LIMITE_ACIMA,
+    "vazao": TIPO_LIMITE_ACIMA,
+    "nivel": TIPO_LIMITE_ACIMA,  # nível do reservatório dispara quando ESTIVER ACIMA do limite
+}
+
+def tag_para_tipo(tag_original: str | None) -> str | None:
+    """
+    Mesma lógica de normalização de tipo usada no alarm_worker:
+    converte tag completa em um dos tipos padrão: ph, pressao, turbidez, cloro, vazao, nivel.
+    """
+    if not tag_original:
+        return None
+
+    tl = tag_original.lower().strip()
+
+    if "ph" in tl:
+        return "ph"
+    if "pressao" in tl or "pressão" in tl:
+        return "pressao"
+    if "turbidez" in tl:
+        return "turbidez"
+    if "cloro" in tl:
+        return "cloro"
+    if "vazao" in tl or "vazão" in tl:
+        return "vazao"
+    if "nivel" in tl or "nível" in tl:
+        return "nivel"
+
+    return None
+
+
+def normalizar_tipo_limite(raw: str | None) -> str:
+    """
+    Garante que qualquer valor vire ACIMA ou ABAIXO.
+    (pensado para futuro onde possa vir 'superior', '>', etc.)
+    """
+    if not raw:
+        return TIPO_LIMITE_ACIMA
+
+    raw_up = str(raw).strip().upper()
+
+    if raw_up in ("ACIMA", "SUPERIOR", "MAIOR", ">"):
+        return TIPO_LIMITE_ACIMA
+
+    if raw_up in ("ABAIXO", "INFERIOR", "MENOR", "<"):
+        return TIPO_LIMITE_ABAIXO
+
+    return TIPO_LIMITE_ACIMA
+
+
+def compara_valor_com_limite(valor_atual, limite, tipo_limite_str: str) -> bool:
+    """
+    Mesma regra do worker:
+    - ACIMA  -> dispara quando valor_atual > limite
+    - ABAIXO -> dispara quando valor_atual < limite
+    """
+    tipo_limite = normalizar_tipo_limite(tipo_limite_str)
+
+    try:
+        v = float(valor_atual)
+        lim = float(limite)
+    except (TypeError, ValueError):
+        return False
+
+    if tipo_limite == TIPO_LIMITE_ACIMA:
+        return v > lim
+
+    if tipo_limite == TIPO_LIMITE_ABAIXO:
+        return v < lim
+
+    return False
+
+
+def descricao_condicao_alarme_para_tag(tag: str) -> str:
+    """
+    Texto de ajuda para o Streamlit (sidebar e cartões),
+    alinhado com a configuração TIPO_LIMITE_POR_TIPO + lógica do worker.
+    """
+    tipo = tag_para_tipo(tag)
+    tipo_limite = TIPO_LIMITE_POR_TIPO.get(tipo, TIPO_LIMITE_ACIMA)
+    tipo_limite = normalizar_tipo_limite(tipo_limite)
+    direcao = "ACIMA" if tipo_limite == TIPO_LIMITE_ACIMA else "ABAIXO"
+    return f"Dispara alerta quando o valor estiver {direcao} do limite configurado (worker 24/7)."
+
+
 # ------------------------- Helpers DB -------------------------
 def to_sqlalchemy_url(url: str) -> str:
     if not url:
@@ -318,7 +413,7 @@ def save_limits_to_db(limits: dict[str, float]):
             )
 
 
-# ------------------------- Auth helpers -------------------------
+# ------------------------- Auth helpers -------------------------#
 def auth_get_user(email: str):
     engine = create_engine(DB_URL, pool_pre_ping=True)
     with engine.connect() as conn:
@@ -675,27 +770,38 @@ def layout_alertas(df: pd.DataFrame, limits: dict[str, float]):
 
             limite = limits.get(tag, None)
             if limite is not None:
-                # Somente alerta visual – quem envia e-mail/WhatsApp é o worker 24/7
-                if last_val > limite:
+                tipo = tag_para_tipo(tag)
+                tipo_limite = TIPO_LIMITE_POR_TIPO.get(tipo, TIPO_LIMITE_ACIMA)
+                condicao_alarme = compara_valor_com_limite(last_val, limite, tipo_limite)
+                tipo_limite_norm = normalizar_tipo_limite(tipo_limite)
+                direcao = "ACIMA" if tipo_limite_norm == TIPO_LIMITE_ACIMA else "ABAIXO"
+
+                if condicao_alarme:
                     st.error(
-                        f"⚠️ Alerta: valor atual **{last_val:.2f}** acima do limite **{limite:.2f}**.\n\n"
+                        f"⚠️ Alerta: valor atual **{last_val:.2f}** está {direcao} do limite **{limite:.2f}**.\n\n"
                         "Os alarmes já estão sendo tratados pelo motor 24/7 (worker)."
                     )
                 else:
                     st.success(
-                        f"✅ Valor atual **{last_val:.2f}** dentro do limite (**≤ {limite:.2f}**)."
+                        f"✅ Valor atual **{last_val:.2f}** dentro da condição configurada "
+                        f"(não está {direcao} do limite **{limite:.2f}**)."
                     )
 
-                acima = dft[dft["value"] > limite]
-                if not acima.empty:
+                # Ocorrências que teriam disparado alarme no período (mesma regra do worker)
+                mask_alarm = dft["value"].apply(
+                    lambda v: compara_valor_com_limite(v, limite, tipo_limite)
+                )
+                dft_alarm = dft[mask_alarm]
+
+                if not dft_alarm.empty:
                     st.warning(
-                        f"Ocorrências acima do limite no período: **{len(acima)}**"
+                        f"Ocorrências com valor {direcao} do limite no período: **{len(dft_alarm)}**"
                     )
                     st.dataframe(
-                        format_alert_table(acima), use_container_width=True
+                        format_alert_table(dft_alarm), use_container_width=True
                     )
                 else:
-                    st.info("Nenhuma ocorrência acima do limite no período.")
+                    st.info(f"Nenhuma ocorrência com valor {direcao} do limite no período.")
 
 
 def layout(df: pd.DataFrame, limits: dict[str, float], user: dict, alarms_on: bool):
@@ -711,7 +817,7 @@ def layout(df: pd.DataFrame, limits: dict[str, float], user: dict, alarms_on: bo
             st.error("Alarmes **DESATIVADOS** ❌")
             if st.button("Ativar Alarmes"):
                 set_alarm_status(True)
-                st.experimental_rerun()
+                st.rerun()
 
     layout_alertas(df, limits)
     st.divider()
@@ -767,12 +873,13 @@ current_limits = load_limits_from_db()
 limits: dict[str, float] = {}
 for tag in TAGS_PADRAO:
     default = current_limits.get(tag, ALERT_DEFAULTS.get(tag, 0.0))
+    help_txt = descricao_condicao_alarme_para_tag(tag)
     limits[tag] = st.sidebar.number_input(
         f"Limite • {tag}",
         value=float(default),
         step=0.1,
         format="%.2f",
-        help=f"Dispara alerta quando {tag} > limite (worker 24/7).",
+        help=help_txt,
     )
 
 # Salva sempre que houver mudança (simples e direto)

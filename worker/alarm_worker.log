@@ -1,0 +1,417 @@
+nohup: ignoring input
+[ALARM WORKER] Motor de alarmes iniciado. Rodando em loop 24/7...
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: Variável de ambiente DATABASE_URL não está definida.
+
+[ALARM WORKER] Verificando sensores...
+[ALARM WORKER] Erro ao ler config_sistema, assumindo alarms_enabled = TRUE. Erro: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao carregar eta.config_limites: Variável de ambiente DATABASE_URL não está definida.
+[ALARM WORKER] Erro ao buscar últimas medições: 
