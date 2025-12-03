@@ -81,12 +81,6 @@ def enviar_alerta_whatsapp(
     """
 
     print("[ALERTA-WPP] Função enviar_alerta_whatsapp chamada.")
-        # Debug das variáveis de ambiente vistas pelo container
-    print(f"[ALERTA-WPP] ENV WPP_DESTINATARIOS_PADRAO={os.getenv('WPP_DESTINATARIOS_PADRAO')!r}")
-    print(f"[ALERTA-WPP] ENV ALERT_WPP_RECIPIENTS={os.getenv('ALERT_WPP_RECIPIENTS')!r}")
-    print(f"[ALERTA-WPP] ENV WHATSAPP_DESTINO={os.getenv('WHATSAPP_DESTINO')!r}")
-    print(f"[ALERTA-WPP] ENV WPP_TO={os.getenv('WPP_TO')!r}")
-
 
     # ---------------------------------------------------------------
     # Compatibilidade com assinatura antiga
@@ -183,3 +177,4 @@ def enviar_alerta_whatsapp(
             sucesso_total = False
 
     return sucesso_total
+

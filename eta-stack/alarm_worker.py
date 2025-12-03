@@ -237,12 +237,13 @@ def check_alerts():
                     except Exception as e:
                         print("[ERRO EMAIL] ao enviar alerta:", e)
 
-                    # WHATSAPP
+                    # WHATSAPP (para destinatários padrão)
                     try:
                         enviar_alerta_whatsapp(
-                            equipamento=nome,
-                            valor_kpi=valor_float,
+                            parametro=nome,
+                            valor_atual=valor_float,
                             limite=limite,
+			    timestamp_str=ts.strftime("%d/%m/%Y %H:%M"),
                         )
                         print(f"[ALERTA-WPP] Envio disparado para '{nome}'.")
                     except Exception as e:
@@ -278,3 +279,4 @@ def main_loop():
 
 if __name__ == "__main__":
     main_loop()
+
