@@ -24,3 +24,19 @@ export function generateTimeSeries(kpiId: string, base: number) {
     value: base + Math.random() * 10 - 5,
   }));
 }
+
+export const formatRelativeTime = (ts: string | Date | null | undefined) => {
+  if (!ts) return "--";
+  const d = ts instanceof Date ? ts : new Date(ts as string);
+  if (isNaN(d.getTime())) return "--";
+  const diffMs = Date.now() - d.getTime();
+  if (diffMs < 0) return "agora";
+  const sec = Math.floor(diffMs / 1000);
+  if (sec < 60) return `há ${sec}s`;
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `há ${min} min`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `há ${hr} h`;
+  const day = Math.floor(hr / 24);
+  return `há ${day} d`;
+};

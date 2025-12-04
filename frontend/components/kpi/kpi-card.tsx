@@ -7,7 +7,7 @@ import {
 } from "@/ui/card";
 import { cn } from "@/lib/utils";
 import type { KPIData } from "@/types/kpi";
-import { formatValue } from "@/lib/format";
+import { formatValue, formatRelativeTime } from "@/lib/format";
 import { Badge } from "@/ui/badge";
 
 const VARIANTS = {
@@ -114,7 +114,7 @@ export default function KPICard({
 
         <div className="pt-3 border-t border-slate-100 flex items-center justify-start gap-2">
           <p className="text-xs text-slate-400 tabular-nums">
-            Última atualização {new Date(updated_at).toLocaleString("pt-BR")}
+            Última atualização {formatRelativeTime(updated_at)}
           </p>
         </div>
       </CardContent>

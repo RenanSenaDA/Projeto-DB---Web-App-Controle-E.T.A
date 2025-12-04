@@ -11,12 +11,14 @@ import {
 
 import { ChartContainer, ChartTooltip } from "@/ui/chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
+import { formatRelativeTime } from "@/lib/format";
 
 interface KPIData {
   id: string;
   label: string;
   value?: number | null;
   unit: string;
+  updated_at: string;
 }
 
 export interface TimeSeriesPoint {
@@ -101,6 +103,11 @@ export default function KpiSeriesCard({ kpi, timeSeries }: KpiSeriesCardProps) {
             />
           </LineChart>
         </ChartContainer>
+        <div className="pt-3 border-t border-slate-100 flex items-center justify-start gap-2">
+          <p className="text-xs text-slate-400 tabular-nums">
+            Última atualização {formatRelativeTime(kpi.updated_at)}
+          </p>
+        </div>
       </CardContent>
     </Card>
   );
