@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
 import type { DashboardResponse, KPICategory } from "@/types/kpi";
 import { createDashboardService } from "@/services/dashboard";
 import { defaultHttpClient } from "@/services/http";
@@ -17,7 +18,9 @@ export default function useApi() {
       setData(json as DashboardResponse);
     } catch (err) {
       console.error("Erro na API:", err);
-      setError("Não foi possível conectar ao servidor de dados.");
+      const msg = "Não foi possível conectar ao servidor de dados.";
+      setError(msg);
+      if (!opts?.silent) toast.error(msg);
     } finally {
       setLoading(false);
     }

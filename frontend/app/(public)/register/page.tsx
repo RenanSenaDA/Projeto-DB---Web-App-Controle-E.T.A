@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -11,18 +12,42 @@ import useAuth from "@/hooks/use-auth";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register, loading, error } = useAuth();
+  const { register, loading } = useAuth();
 
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
+  
+
+  const isValidEmail = useMemo(() => {
+    if (!email) return false;
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }, [email]);
+
+  const isStrongPassword = useMemo(() => {
+    if (!senha) return false;
+    const hasUpper = /[A-Z]/.test(senha);
+    const hasLower = /[a-z]/.test(senha);
+    const hasDigit = /\d/.test(senha);
+    const hasSpecial = /[^A-Za-z0-9]/.test(senha);
+    const longEnough = senha.length >= 8;
+    return hasUpper && hasLower && hasDigit && hasSpecial && longEnough;
+  }, [senha]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nome || !email || !senha) return;
+    if (!isValidEmail) {
+      toast.error("E-mail inválido");
+      return;
+    }
+    if (!isStrongPassword) {
+      toast.error("Senha fraca. Use 8+ caracteres com maiúscula, minúscula, número e símbolo.");
+      return;
+    }
     try {
       await register(nome, email, senha);
-      router.push("/login");
+      router.push("/login?registered=1");
     } catch {}
   };
 
@@ -65,17 +90,19 @@ export default function RegisterPage() {
               onChange={(e) => setSenha(e.target.value)}
               required
             />
+            <p className="text-xs text-center text-slate-500">
+              A senha deve ter 8+ caracteres e incluir pelo menos: 1 letra
+              maiúscula, 1 letra minúscula, 1 número e 1 símbolo.
+            </p>
 
             <Button
               type="submit"
               className="w-full bg-[#00283F]"
-              disabled={loading}
+              disabled={loading || !isValidEmail || !isStrongPassword}
             >
               Registrar
             </Button>
           </form>
-
-          {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
 
           <p className="text-sm text-center text-gray-600 mt-4">
             Já tem conta?{" "}

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { toast } from "sonner";
 import { createMeasurementsService } from "@/services/measurements";
 import { defaultHttpClient } from "@/services/http";
 
@@ -29,6 +30,7 @@ export default function useSeries(tags: string[], minutes: number) {
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Falha ao carregar séries";
       setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }

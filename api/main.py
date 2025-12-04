@@ -5,7 +5,8 @@ from typing import List, Optional, Dict
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, field_validator
+import re
 from passlib.hash import pbkdf2_sha256, bcrypt
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
@@ -68,14 +69,37 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 # --- Models ---
 class LoginIn(BaseModel):
-    email: str
+    email: EmailStr
     password: str
 
 
 class RegisterIn(BaseModel):
     name: str
-    email: str
+    email: EmailStr
     password: str
+
+    @field_validator("name")
+    @classmethod
+    def _validate_name(cls, v: str) -> str:
+        v = (v or "").strip()
+        if len(v) < 2:
+            raise ValueError("Nome muito curto")
+        return v
+
+    @field_validator("password")
+    @classmethod
+    def _validate_password(cls, v: str) -> str:
+        if not v or len(v) < 8:
+            raise ValueError("Senha fraca: mínimo 8 caracteres")
+        if not re.search(r"[A-Z]", v):
+            raise ValueError("Senha fraca: incluir letra maiúscula")
+        if not re.search(r"[a-z]", v):
+            raise ValueError("Senha fraca: incluir letra minúscula")
+        if not re.search(r"\d", v):
+            raise ValueError("Senha fraca: incluir número")
+        if not re.search(r"[^A-Za-z0-9]", v):
+            raise ValueError("Senha fraca: incluir símbolo")
+        return v
 
 
 class SensorOut(BaseModel):

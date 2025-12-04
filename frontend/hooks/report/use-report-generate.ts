@@ -1,5 +1,6 @@
 import type { DashboardResponse } from "@/types/kpi";
 import { useState } from "react";
+import { toast } from "sonner";
 import { createReportsService } from "@/services/reports";
 import { defaultHttpClient } from "@/services/http";
 
@@ -23,6 +24,10 @@ export default function useReportGenerator(apiData: DashboardResponse | null) {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
+      toast.success("Relatório gerado com sucesso");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Erro ao gerar relatório";
+      toast.error(msg);
     } finally {
       setIsGenerating(false);
     }

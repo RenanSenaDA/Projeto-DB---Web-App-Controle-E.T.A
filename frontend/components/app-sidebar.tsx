@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   Settings,
   LogOut,
+  ChevronsUpDown,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import useAuth from "@/hooks/use-auth";
@@ -51,7 +52,7 @@ const items = [
 export function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   return (
     <Sidebar>
@@ -119,8 +120,29 @@ export function AppSidebar() {
               tooltip="Sair"
               className="text-slate-500 hover:bg-rose-50 hover:text-red-500"
             >
-              <LogOut className="text-slate-400" />
+              <LogOut />
               <span>Sair</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton size="lg" className="mt-2">
+              <div className="h-8 w-8 rounded-lg bg-slate-200 flex items-center justify-center overflow-hidden">
+                <span className="text-xs font-medium">
+                  {((user?.name || user?.email || "CN").match(/\b\w/g) || [])
+                    .slice(0, 2)
+                    .join("")
+                    .toUpperCase()}
+                </span>
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-medium">
+                  {user?.name || "Usuário"}
+                </span>
+                <span className="truncate text-xs">
+                  {user?.email || "email"}
+                </span>
+              </div>
+              <ChevronsUpDown className="ml-auto size-4" />
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

@@ -1,4 +1,5 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { toast } from "sonner";
 import { getApiBase } from "@/lib/utils";
 
 type AuthUser = { id: number; email: string; name: string; role: string };
@@ -27,10 +28,12 @@ export default function useAuth() {
       // cookie simples para o middleware
       document.cookie = `auth_token=${token}; path=/; max-age=${60 * 60 * 8}`; // 8h
       setUser(u);
+      toast.success("Login realizado com sucesso");
       return u;
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Falha no login";
       setError(msg);
+      toast.error(msg);
       throw e;
     } finally {
       setLoading(false);
@@ -50,10 +53,12 @@ export default function useAuth() {
         const t = await res.text();
         throw new Error(t || `HTTP ${res.status}`);
       }
+      toast.success("Cadastro realizado com sucesso");
       return true;
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Falha no cadastro";
       setError(msg);
+      toast.error(msg);
       throw e;
     } finally {
       setLoading(false);
@@ -63,7 +68,30 @@ export default function useAuth() {
   const logout = useCallback(() => {
     document.cookie = `auth_token=; path=/; max-age=0`;
     setUser(null);
+    toast.success("Sessão encerrada");
   }, []);
+
+  useEffect(() => {
+    try {
+      const raw = typeof window !== "undefined" ? window.localStorage.getItem("auth_user") : null;
+      if (raw) {
+        const parsed = JSON.parse(raw) as AuthUser;
+        if (parsed && parsed.email) {
+          setUser(parsed);
+        }
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    try {
+      if (user) {
+        window.localStorage.setItem("auth_user", JSON.stringify(user));
+      } else {
+        window.localStorage.removeItem("auth_user");
+      }
+    } catch {}
+  }, [user]);
 
   return { loading, error, user, login, register, logout };
 }

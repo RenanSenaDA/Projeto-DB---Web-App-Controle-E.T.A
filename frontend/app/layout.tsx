@@ -1,5 +1,6 @@
 import "@/styles/globals.css";
 import type { Metadata } from "next";
+import { AppToaster } from "@/components/app-toaster";
 
 export const metadata: Metadata = {
   title: "AquaLink EQ",
@@ -13,7 +14,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-br">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        {children}
+        <AppToaster />
+      </body>
     </html>
   );
 }

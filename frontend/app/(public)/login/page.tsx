@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -11,14 +12,23 @@ import useAuth from "@/hooks/use-auth";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, loading, error } = useAuth();
+  const { login, loading } = useAuth();
 
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
 
+  const isValidEmail = useMemo(() => {
+    if (!email) return false;
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }, [email]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !senha) return;
+    if (!isValidEmail) {
+      toast.error("E-mail inválido");
+      return;
+    }
     try {
       await login(email, senha);
       router.push("/dashboard");
@@ -61,12 +71,11 @@ export default function LoginPage() {
             <Button
               type="submit"
               className="w-full bg-[#00283F]"
-              disabled={loading}
+              disabled={loading || !isValidEmail}
             >
               Entrar
             </Button>
           </form>
-          {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
 
           <p className="text-sm text-center text-gray-600 mt-4">
             Não tem conta?{" "}
