@@ -34,3 +34,27 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+---
+
+# Frontend AquaLink (Resumo)
+
+Aplicação web para monitorar a ETA.
+
+## Como usar
+
+- Iniciar: `npm run dev` e acessar `http://localhost:3000`.
+- Login: `http://localhost:3000/login`.
+- Navegação: use o menu lateral (Dashboard, Séries, Relatórios, Configurações).
+- Sair: botão “Sair” no rodapé do menu.
+
+## Páginas principais
+
+- Dashboard: visão geral dos KPIs.
+- Séries Temporais: gráficos com histórico.
+- Relatórios: gerar arquivo Excel.
+- Configurações: ajustar limites dos KPIs e salvar.
+
+## Configuração
+
+- API: opcional `NEXT_PUBLIC_API_BASE_URL` para apontar o backend.

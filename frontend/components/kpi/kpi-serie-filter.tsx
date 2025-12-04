@@ -1,12 +1,13 @@
 "use client";
 
 import type { KPIData } from "@/types/kpi";
+import { Badge } from "@/ui/badge";
 
 interface KpiFilterProps {
   allKpis: KPIData[];
   selectedFilters: string[];
   toggleFilter: (kpiId: string) => void;
-  clearFilters: () => void; // nova prop
+  clearFilters: () => void;
 }
 
 export default function KpiSeriesFilter({
@@ -16,16 +17,23 @@ export default function KpiSeriesFilter({
   clearFilters,
 }: KpiFilterProps) {
   return (
-    <div className="flex flex-col gap-2">
-      {/* Botão de limpar filtros */}
-      {selectedFilters.length > 0 && (
-        <button
-          className="self-start px-3 py-1 text-sm font-medium text-white bg-[#00B4F0] rounded hover:bg-[#00283F] transition"
-          onClick={clearFilters}
-        >
-          Limpar filtros
-        </button>
-      )}
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-2">
+        <h4 className="text-sm font-semibold text-[#00283F]">Filtro de KPIs</h4>
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary">
+            Selecionados: {selectedFilters.length}
+          </Badge>
+          {selectedFilters.length > 0 && (
+            <button
+              className="px-3 py-1 text-sm font-medium text-white bg-[#00B4F0] rounded hover:bg-[#00283F] transition"
+              onClick={clearFilters}
+            >
+              Limpar
+            </button>
+          )}
+        </div>
+      </div>
 
       <div className="flex flex-wrap gap-3 max-h-48 overflow-y-auto border rounded p-3 bg-white shadow-sm">
         {allKpis.map((kpi) => (
@@ -43,7 +51,9 @@ export default function KpiSeriesFilter({
               checked={selectedFilters.includes(kpi.id)}
               onChange={() => toggleFilter(kpi.id)}
             />
-            <span className="text-sm">{kpi.label}</span>
+            <span className="text-sm">
+              {kpi.label ? kpi.label[0].toUpperCase() + kpi.label.slice(1) : ""}
+            </span>
           </label>
         ))}
       </div>

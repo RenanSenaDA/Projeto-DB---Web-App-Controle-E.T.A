@@ -1,35 +1,20 @@
 import { useState, useEffect, useCallback } from "react";
-import { MOCK_API_RESPONSE } from "@/lib/mock-data";
 import type { DashboardResponse, KPICategory } from "@/types/kpi";
+import { createDashboardService } from "@/services/dashboard";
+import { defaultHttpClient } from "@/services/http";
 
 export default function useApi() {
   const [data, setData] = useState<DashboardResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
+  const fetchData = useCallback(async (opts?: { silent?: boolean }) => {
+    setLoading(opts?.silent ? false : true);
     setError(null);
-    
     try {
-      // Simula latência de rede (1.5 segundos)
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      
-      // Simula uma falha aleatória (descomente para testar erro)
-      // if (Math.random() < 0.1) throw new Error("Falha na comunicação com o CLP.");
-
-      // Atualiza o timestamp para simular dados em tempo real
-      const freshData: DashboardResponse = {
-        ...MOCK_API_RESPONSE,
-        meta: {
-          ...MOCK_API_RESPONSE.meta,
-          timestamp: new Date().toLocaleTimeString("pt-BR"),
-        },
-        // Aqui você poderia adicionar lógica para variar levemente os valores
-        // para parecer "vivo" (ex: value + Math.random())
-      };
-
-      setData(freshData);
+      const svc = createDashboardService(defaultHttpClient);
+      const json = await svc.getDashboard();
+      setData(json as DashboardResponse);
     } catch (err) {
       console.error("Erro na API:", err);
       setError("Não foi possível conectar ao servidor de dados.");
@@ -41,32 +26,28 @@ export default function useApi() {
   // Efeito de montagem e polling
   useEffect(() => {
     fetchData();
-    
-    // Atualiza automaticamente a cada 60 segundos
-    const interval = setInterval(fetchData, 60000);
+    const interval = setInterval(() => fetchData({ silent: true }), 60000);
     return () => clearInterval(interval);
   }, [fetchData]);
 
   /**
    * Utilitário para filtrar KPIs na UI de forma limpa
    */
-  const getKPIs = useCallback((
-    stations: "eta" | "ultrafiltracao" | "carvao",
-    category?: KPICategory
-  ) => {
-    if (!data) return [];
-    
-    const stationsData = data.data[stations];
-    if (!stationsData) return [];
+  const getKPIs = useCallback(
+    (stations: "eta" | "ultrafiltracao" | "carvao", category?: KPICategory) => {
+      if (!data) return [];
 
-    const kpis = stationsData.kpis;
-    
-    if (!category) return kpis;
+      const stationsData = data.data[stations];
+      if (!stationsData) return [];
 
-    console.log("API RAW:", data)
-    
-    return kpis.filter((kpi) => kpi.category === category);
-  }, [data]);
+      const kpis = stationsData.kpis;
+
+      if (!category) return kpis;
+
+      return kpis.filter((kpi) => kpi.category === category);
+    },
+    [data]
+  );
 
   return {
     data,

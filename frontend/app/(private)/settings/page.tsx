@@ -4,18 +4,23 @@ import { useState, useEffect } from "react";
 
 import { Tabs, TabsContent } from "@/ui/tabs";
 
+import { Button } from "@/ui/button";
+
 import PageHeader from "@/components/header-page";
+import Loading from "@/components/feedback/loading";
 import SectionLabel from "@/components/label-section";
 import TabsListStation from "@/components/tabs-list-station";
 
+import { defaultHttpClient } from "@/services/http";
+import { createLimitsService } from "@/services/limits";
+
 import useApi from "@/hooks/use-api";
 import { SECTIONS, type KPICategory, type KPIData } from "@/types/kpi";
-import Loading from "@/components/feedback/loading";
-import { Button } from "@/ui/button";
 
 export default function SettingsPage() {
-  const { loading, error, data } = useApi();
+  const { loading, error, data, fetchData } = useApi();
   const [limits, setLimits] = useState<Record<string, number | null>>({});
+  const [saving, setSaving] = useState<string | null>(null);
 
   useEffect(() => {
     if (!data) return;
@@ -40,10 +45,16 @@ export default function SettingsPage() {
   };
 
   const saveLimit = async (id: string) => {
-    // aqui entra a chamada real à sua API:
-    // await api.updateKPILimit(id, limits[id]);
-
-    console.log("Salvar limite", id, limits[id]);
+    const value = limits[id];
+    if (value === null || Number.isNaN(value)) return;
+    setSaving(id);
+    try {
+      const svc = createLimitsService(defaultHttpClient);
+      await svc.updateById(id, Number(value));
+      await fetchData({ silent: true });
+    } finally {
+      setSaving(null);
+    }
   };
 
   if (loading) return <Loading />;
@@ -111,9 +122,12 @@ export default function SettingsPage() {
 
                             <Button
                               onClick={() => saveLimit(kpi.id)}
-                              className="px-3 py-1 bg-[#00B4F0] text-white rounded hover:bg-[#00283F]"
+                              disabled={
+                                limits[kpi.id] === null || saving === kpi.id
+                              }
+                              className="px-3 py-1 bg-[#00B4F0] text-white rounded hover:bg-[#00283F] disabled:bg-slate-200 disabled:text-slate-400"
                             >
-                              Salvar
+                              {saving === kpi.id ? "Salvando..." : "Salvar"}
                             </Button>
                           </div>
                         </div>

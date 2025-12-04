@@ -43,5 +43,11 @@ export default function useReportState() {
       setDateRange((prev) => ({ ...prev, start: date })),
     setEndDate: (date: string) =>
       setDateRange((prev) => ({ ...prev, end: date })),
+    clearAll: () => {
+      setSelectedKpis([]);
+      setExpandedSystems([]);
+      const today = new Date().toISOString().split("T")[0];
+      setDateRange({ start: today, end: today });
+    },
   };
 }

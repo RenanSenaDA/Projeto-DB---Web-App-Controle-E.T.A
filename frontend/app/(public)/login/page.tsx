@@ -7,9 +7,11 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/ui/input";
 import { Button } from "@/ui/button";
 import { Card, CardHeader, CardContent, CardTitle } from "@/ui/card";
+import useAuth from "@/hooks/use-auth";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login, loading, error } = useAuth();
 
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
@@ -17,7 +19,10 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !senha) return;
-    router.push("/dashboard");
+    try {
+      await login(email, senha);
+      router.push("/dashboard");
+    } catch {}
   };
 
   return (
@@ -53,12 +58,22 @@ export default function LoginPage() {
               required
             />
 
-            <Button type="submit" className="w-full bg-[#00283F]">Entrar</Button>
+            <Button
+              type="submit"
+              className="w-full bg-[#00283F]"
+              disabled={loading}
+            >
+              Entrar
+            </Button>
           </form>
+          {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
 
           <p className="text-sm text-center text-gray-600 mt-4">
             Não tem conta?{" "}
-            <Link href="/register" className="text-[#00B4F0] underline hover:opacity-80">
+            <Link
+              href="/register"
+              className="text-[#00B4F0] underline hover:opacity-80"
+            >
               Criar conta
             </Link>
           </p>

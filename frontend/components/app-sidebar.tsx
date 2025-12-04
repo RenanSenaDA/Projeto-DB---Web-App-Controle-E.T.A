@@ -3,7 +3,15 @@
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { BarChart2, BarChart3, LayoutDashboard, Settings } from "lucide-react";
+import {
+  BarChart2,
+  BarChart3,
+  LayoutDashboard,
+  Settings,
+  LogOut,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import useAuth from "@/hooks/use-auth";
 
 import {
   Sidebar,
@@ -30,7 +38,7 @@ const items = [
   },
   {
     title: "Relatórios",
-    url: "/reports",
+    url: "/generate-reports",
     icon: BarChart2,
   },
   {
@@ -42,6 +50,8 @@ const items = [
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { logout } = useAuth();
 
   return (
     <Sidebar>
@@ -98,7 +108,23 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter />
+      <SidebarFooter>
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={() => {
+                logout();
+                router.push("/login");
+              }}
+              tooltip="Sair"
+              className="text-slate-500 hover:bg-rose-50 hover:text-red-500"
+            >
+              <LogOut className="text-slate-400" />
+              <span>Sair</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarFooter>
     </Sidebar>
   );
 }

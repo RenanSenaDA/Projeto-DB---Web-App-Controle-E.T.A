@@ -1,12 +1,10 @@
 "use client";
-
-import { useState } from "react";
 import { Tabs, TabsContent } from "@/ui/tabs";
 
-import Error from "@/components/feedback/error";
-import Loading from "@/components/feedback/loading";
 import KPICard from "@/components/kpi/kpi-card";
+import Error from "@/components/feedback/error";
 import PageHeader from "@/components/header-page";
+import Loading from "@/components/feedback/loading";
 import KPISection from "@/components/kpi/kpi-section";
 import KPIStatusCard from "@/components/kpi/kpi-status-card";
 import TabsListStation from "@/components/tabs-list-station";
@@ -16,41 +14,13 @@ import type { KPIData, KPICategory } from "@/types/kpi";
 
 import useApi from "@/hooks/use-api";
 
-// Define períodos em minutos
-const TIME_RANGES = [
-  { label: "Últimos 15 min", value: 15 },
-  { label: "Últimas 2h", value: 120 },
-  { label: "Últimas 24h", value: 1440 },
-  { label: "Últimos 7 dias", value: 10080 },
-];
-
 export default function DashboardPage() {
   const { loading, error, getKPIs, data, fetchData } = useApi();
-  const [timeRange, setTimeRange] = useState<number>(15); // padrão 15 minutos
 
   if (loading) return <Loading />;
   if (error) return <Error error={error} fetchData={fetchData} />;
 
   const lastUpdate = data?.meta.timestamp || "--:--:--";
-
-  // Aqui você pode filtrar os KPIs que possuem histórico
-  // e limitar os dados ao período selecionado
-  const filterByTimeRange = (kpis: KPIData[]) => {
-    if (!kpis.length) return kpis;
-
-    const now = Date.now();
-    const rangeStart = now - timeRange * 60_000;
-
-    return kpis.map((kpi) => {
-      if (!kpi.history) return kpi;
-
-      const filteredHistory = kpi.history.filter(
-        (point) => new Date(point.timestamp).getTime() >= rangeStart
-      );
-
-      return { ...kpi, history: filteredHistory };
-    });
-  };
 
   const renderCardList = (kpis: KPIData[]) => {
     if (!kpis.length)
@@ -88,33 +58,18 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="container mx-auto min-h-screen p-6 font-sans space-y-6">
+    <div className="container mx-auto min-h-screen p-6 font-sans">
       <div className="flex justify-between items-center">
         <PageHeader
           title="Dashboard de Monitoramento"
           subtitle="Visão geral das estações em tempo real"
         />
-
-        {/* Select de período */}
-        <div className="flex justify-end mb-4">
-          <select
-            className="border rounded px-3 py-1"
-            value={timeRange}
-            onChange={(e) => setTimeRange(Number(e.target.value))}
-          >
-            {TIME_RANGES.map((r) => (
-              <option key={r.value} value={r.value}>
-                {r.label}
-              </option>
-            ))}
-          </select>
-        </div>
       </div>
 
       <Tabs defaultValue="eta" className="w-full">
         <TabsListStation />
 
-        {Object.entries(stations).map(([stationKey, kpis]) => (
+        {Object.keys(stations).map((stationKey) => (
           <TabsContent
             key={stationKey}
             value={stationKey}
@@ -126,8 +81,9 @@ export default function DashboardPage() {
                 (typeof SECTIONS)[keyof typeof SECTIONS]
               ][]
             ).map(([category, config]) => {
-              const sectionKPIs = filterByTimeRange(
-                getKPIs(stationKey as keyof typeof stations, category)
+              const sectionKPIs = getKPIs(
+                stationKey as keyof typeof stations,
+                category
               );
 
               if (!sectionKPIs.length) return null;

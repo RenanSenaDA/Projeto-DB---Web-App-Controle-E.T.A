@@ -16,7 +16,6 @@ export default function DashboardLayout({
             <SidebarTrigger />
             <SystemStatus />
           </div>
-
           {children}
         </div>
       </main>

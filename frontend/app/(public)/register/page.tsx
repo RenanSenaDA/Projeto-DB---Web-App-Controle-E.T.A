@@ -7,9 +7,11 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/ui/input";
 import { Button } from "@/ui/button";
 import { Card, CardHeader, CardContent, CardTitle } from "@/ui/card";
+import useAuth from "@/hooks/use-auth";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { register, loading, error } = useAuth();
 
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
@@ -18,7 +20,10 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nome || !email || !senha) return;
-    router.push("/login");
+    try {
+      await register(nome, email, senha);
+      router.push("/login");
+    } catch {}
   };
 
   return (
@@ -61,10 +66,16 @@ export default function RegisterPage() {
               required
             />
 
-            <Button type="submit" className="w-full bg-[#00283F]">
+            <Button
+              type="submit"
+              className="w-full bg-[#00283F]"
+              disabled={loading}
+            >
               Registrar
             </Button>
           </form>
+
+          {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
 
           <p className="text-sm text-center text-gray-600 mt-4">
             Já tem conta?{" "}
