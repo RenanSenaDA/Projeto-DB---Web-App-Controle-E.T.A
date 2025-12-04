@@ -61,6 +61,41 @@ O projeto propõe um **sistema centralizado**, capaz de integrar medições de d
 
 ---
 
+## 🧩 Componentes Criados
+
+- `api/` (FastAPI)
+  - Endpoints para dashboard, séries temporais, limites, alarmes e relatórios.
+  - Iniciar: `pip install -r api/requirements.txt` e `uvicorn main:app --reload --port 8000` (dentro de `api/`).
+  - Variáveis: `DATABASE_URL` (ou `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE`), `LOCAL_TZ`, `FEED_INTERVAL`.
+  - Endpoints:
+    - `GET /dashboard`
+    - `GET /measurements/latest`
+    - `GET /measurements/series?tags=...&minutes=...`
+    - `GET /limits` e `PUT /limits`
+    - `GET /alarms/status` e `PUT /alarms/status`
+    - `GET /reports/excel`
+    - `POST /auth/login` e `POST /auth/register`
+
+- `frontend/` (Next.js)
+  - Interface web com Dashboard, Séries Temporais, Relatórios e Configurações.
+  - Iniciar: `npm install` e `npm run dev` (dentro de `frontend/`).
+  - Variáveis: `NEXT_PUBLIC_API_BASE_URL` (padrão `http://localhost:8000`).
+  - Observação: Dashboard atualiza a cada 60s; Séries Temporais atualizam ao mudar filtros/intervalo.
+
+- `eta-stack/`
+  - `docker-compose.yml` orquestra `streamlit/` e `worker/`.
+  - Iniciar: `docker compose up -d` (dentro de `eta-stack/`).
+  - Requer `.env` em `streamlit/` (referenciado no compose).
+
+- `streamlit/`
+  - App Streamlit (opcional) para visualização rápida.
+  - Iniciar: `pip install -r streamlit/requirements.txt` e `python -m streamlit run streamlit/streamlit_eta_app.py` (porta `8501`).
+
+- `worker/`
+  - Serviços de alarmes e ingestões (`alarm_worker.py`, `feeder_loop.py`).
+  - Iniciar: `pip install -r worker/requirements.txt` e executar o script desejado (`python alarm_worker.py`).
+
+
 ## 📊 O que o sistema faz hoje
 
 - Captura de dados em tempo real a partir de sensores ou simulações
@@ -217,4 +252,42 @@ http://localhost:8501
 🏷️ Versões
 
 v1.0-fase1 — autenticação + alertas por limiar + ingestão Node-RED + dashboards + relatórios básicos.
+
+---
+
+## ✅ Informações complementares e pendências
+
+- Criar `.env` em `streamlit/` para uso pelo `eta-stack/docker-compose.yml`.
+- Configurar `NEXT_PUBLIC_API_BASE_URL` no `frontend` apontando para a API (padrão `http://localhost:8000`).
+- Configurar `DATABASE_URL` (ou `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE`) na `api` para conexão ao Postgres.
+- Mapear e documentar os nomes de tags dos sensores (ex.: `bombeamento/vazao`, `qualidade/ph`) para facilitar filtros na UI.
+- Fluxos do Node-RED não estão versionados aqui; garantir que a ingestão está ativa (Máquina A → Postgres).
+
+---
+
+## ▶️ Subir localmente (API + Frontend)
+
+1) API (PowerShell)
+
+```
+cd api
+python -m venv .venv
+\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+${env:DATABASE_URL = "postgresql+psycopg://postgres:postgres@localhost:5432/eta"}
+uvicorn main:app --reload --port 8000
+```
+
+2) Frontend (PowerShell)
+
+```
+cd frontend
+npm install
+${env:NEXT_PUBLIC_API_BASE_URL = "http://localhost:8000"}
+npm run dev
+```
+
+Observação:
+- A API sobe em `http://localhost:8000` e o Frontend em `http://localhost:3000`.
+- Se `NEXT_PUBLIC_API_BASE_URL` não for definido, o frontend usa `http://localhost:8000` por padrão.
 
