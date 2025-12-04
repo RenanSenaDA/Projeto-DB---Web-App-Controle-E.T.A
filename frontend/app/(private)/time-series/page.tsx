@@ -80,7 +80,8 @@ export default function TimeSeriesPage() {
   const buildSeries = (tag: string) => {
     const points = seriesMap[tag] || [];
     return points.map((p) => ({
-      timestamp: new Date(p.ts).toLocaleTimeString("pt-BR", {
+      ts: p.ts,
+      label: new Date(p.ts).toLocaleTimeString("pt-BR", {
         hour: "2-digit",
         minute: "2-digit",
       }),

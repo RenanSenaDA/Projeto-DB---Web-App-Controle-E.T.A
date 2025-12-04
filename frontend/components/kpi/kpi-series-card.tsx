@@ -22,7 +22,8 @@ interface KPIData {
 }
 
 export interface TimeSeriesPoint {
-  timestamp: string;
+  ts: string;
+  label: string;
   value: number;
 }
 
@@ -33,12 +34,14 @@ interface KpiSeriesCardProps {
 
 function CustomTooltip({ active, payload }: TooltipProps<number, string>) {
   if (!active || !payload || !payload.length) return null;
-  const item = payload[0]?.payload as { timestamp: string; value: number };
-  const now = new Date();
-  const d = new Date(now);
-  const [h, m] = item.timestamp.split(":");
-  d.setHours(Number(h), Number(m));
-  const dataCompleta = d.toLocaleDateString("pt-BR");
+  const item = payload[0]?.payload as {
+    ts: string;
+    label: string;
+    value: number;
+  };
+  const d = new Date(item.ts);
+  const data = d.toLocaleDateString("pt-BR");
+  const hora = d.toLocaleTimeString("pt-BR");
 
   return (
     <div className="min-w-40 rounded-lg border bg-white px-3 py-2 shadow-lg">
@@ -51,7 +54,11 @@ function CustomTooltip({ active, payload }: TooltipProps<number, string>) {
         </div>
         <div className="flex justify-between">
           <span className="text-neutral-500">Data</span>
-          <span className="font-medium text-neutral-800">{dataCompleta}</span>
+          <span className="font-medium text-neutral-800">{data}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-neutral-500">Horário</span>
+          <span className="font-medium text-neutral-800">{hora}</span>
         </div>
       </div>
     </div>
@@ -73,7 +80,7 @@ export default function KpiSeriesCard({ kpi, timeSeries }: KpiSeriesCardProps) {
         >
           <LineChart width={335} height={300} data={timeSeries}>
             <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="timestamp" tick={{ fontSize: 12 }} stroke="#888" />
+            <XAxis dataKey="label" tick={{ fontSize: 12 }} stroke="#888" />
             <YAxis
               tick={{ fontSize: 12 }}
               stroke="#888"
@@ -90,7 +97,7 @@ export default function KpiSeriesCard({ kpi, timeSeries }: KpiSeriesCardProps) {
               strokeWidth={2}
               dot={({ cx, cy, payload }) => (
                 <circle
-                  key={`${kpi.id}-${payload.timestamp}`}
+                  key={`${kpi.id}-${payload.ts}`}
                   cx={cx}
                   cy={cy}
                   r={5}
