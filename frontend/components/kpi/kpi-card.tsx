@@ -8,6 +8,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { KPIData } from "@/types/kpi";
 import { formatValue } from "@/lib/format";
+import { Badge } from "@/ui/badge";
 
 const VARIANTS = {
   operacional: {
@@ -48,6 +49,12 @@ export default function KPICard({
   className,
 }: KPIData & { className?: string }) {
   const styles = VARIANTS[category] || VARIANTS.default;
+  const aboveLimit =
+    value !== null &&
+    value !== undefined &&
+    limit !== null &&
+    limit !== undefined &&
+    Number(value) > Number(limit);
 
   return (
     <Card
@@ -57,12 +64,19 @@ export default function KPICard({
         className
       )}
     >
-      <CardHeader className="flex flex-col items-start justify-between pb-2 space-y-0">
+      <CardHeader className="flex items-start justify-between pb-2 space-y-0">
         <CardTitle className="text-xs font-bold text-slate-600 uppercase tracking-wider">
           {label}
         </CardTitle>
 
-        {status_operation && <CardAction>{status_operation}</CardAction>}
+        {(status_operation || aboveLimit) && (
+          <CardAction className="flex flex-col items-end gap-1">
+            {status_operation && (
+              <span className="text-xs text-slate-500">{status_operation}</span>
+            )}
+            {aboveLimit && <Badge variant="destructive">Acima do limite</Badge>}
+          </CardAction>
+        )}
       </CardHeader>
 
       <CardContent className="space-y-4">
