@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 import { Tabs, TabsContent } from "@/ui/tabs";
 
@@ -52,6 +53,10 @@ export default function SettingsPage() {
       const svc = createLimitsService(defaultHttpClient);
       await svc.updateById(id, Number(value));
       await fetchData({ silent: true });
+      toast.success("Limite atualizado com sucesso");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Falha ao atualizar limite";
+      toast.error(msg);
     } finally {
       setSaving(null);
     }
