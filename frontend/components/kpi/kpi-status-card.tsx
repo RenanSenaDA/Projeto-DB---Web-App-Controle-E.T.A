@@ -51,7 +51,7 @@ export default function KPIStatusCard({ value }: KPIStatusCardProps) {
 
         <Badge
           variant="outline"
-          className={`${badge} px-2 py-0.5 text-xs font-semibold capitalize`}
+          className={`${badge} px-2 py-0.5 text-xs font-semibold`}
         >
           Em {statusText}
         </Badge>

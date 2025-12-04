@@ -51,9 +51,7 @@ export default function KpiSeriesFilter({
               checked={selectedFilters.includes(kpi.id)}
               onChange={() => toggleFilter(kpi.id)}
             />
-            <span className="text-sm">
-              {kpi.label ? kpi.label[0].toUpperCase() + kpi.label.slice(1) : ""}
-            </span>
+            <span className="text-sm">{kpi.label}</span>
           </label>
         ))}
       </div>

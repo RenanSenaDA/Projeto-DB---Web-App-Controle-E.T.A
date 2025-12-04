@@ -112,7 +112,7 @@ export default function StepAccordionItem({
                 <div className="flex flex-col min-w-0">
                   <span
                     className={cn(
-                      "text-sm font-medium truncate capitalize",
+                      "text-sm font-medium truncate",
                       isSelected ? "text-blue-900" : "text-slate-600"
                     )}
                   >
