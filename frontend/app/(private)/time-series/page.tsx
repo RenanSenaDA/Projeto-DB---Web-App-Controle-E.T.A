@@ -47,7 +47,7 @@ export default function TimeSeriesPage() {
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [timeRange, setTimeRange] = useState<number>(10080);
   const selectedStation = useMemo(
-    () => activeStation || stationKeys[0] || "eta",
+    () => activeStation || stationKeys[0] || "",
     [activeStation, stationKeys]
   );
   const activeTags = useMemo(() => {
