@@ -16,6 +16,9 @@ export default function TabsListStation({
   className = "",
   triggerClassName = "",
 }: TabsStationProps) {
+  // Componente: lista de abas de estações
+  // Props: stations (chave/label), classes opcionais
+  // Retorno: triggers de Tabs para selecionar estação ativa
   return (
     <TabsList
       className={`w-full mb-4 flex flex-wrap h-auto gap-1 ${className}`}

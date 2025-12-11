@@ -16,8 +16,10 @@ import { buildCategoryMap } from "@/lib/utils";
 import useApi from "@/hooks/use-api";
 
 export default function DashboardPage() {
+  // Página: visão geral de KPIs por estação/categoria com últimas leituras
   const { loading, error, getKPIs, data, fetchData } = useApi();
 
+  // Deriva lista de estações com KPIs disponíveis do payload
   const stationKeys = useMemo(() => {
     return Object.keys(data?.data ?? {}).filter(
       (key) => (data?.data?.[key]?.kpis?.length ?? 0) > 0
@@ -37,6 +39,7 @@ export default function DashboardPage() {
   if (loading) return <Loading />;
   if (error) return <Error error={error} fetchData={fetchData} />;
 
+  // Renderiza cards de KPIs; mostra mensagem quando não há dados
   const renderCardList = (kpis: KPIData[]) => {
     if (!kpis.length) {
       return (
@@ -58,6 +61,7 @@ export default function DashboardPage() {
     );
   };
 
+  // Status operacional removido; placeholder futuro
   const renderStatusCard = () => null;
 
   return (

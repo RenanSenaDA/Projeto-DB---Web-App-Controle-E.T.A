@@ -1,11 +1,15 @@
 import type { HttpClient } from "@/services/http"
 import { getApiBase, idToTag } from "@/lib/utils"
 
+// Service: atualiza limites de KPIs
+// updateById(id, value): converte id em tag e persiste um limite
+// updateManyByTag(limits): atualiza múltiplos limites via tags
 export type LimitsService = {
   updateById: (id: string, value: number) => Promise<void>
   updateManyByTag: (limits: Record<string, number>) => Promise<void>
 }
 
+// Factory: cria service de limites usando HttpClient
 export function createLimitsService(client: HttpClient): LimitsService {
   return {
     async updateById(id, value) {

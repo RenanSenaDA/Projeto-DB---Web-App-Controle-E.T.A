@@ -2,10 +2,13 @@ import type { HttpClient } from "@/services/http"
 import { getApiBase } from "@/lib/utils"
 import type { ApiResponse } from "@/types/kpi"
 
+// Service: obtém payload do dashboard
+// getDashboard(): retorna estrutura ApiResponse com meta e dados por estação
 export type DashboardService = {
   getDashboard: () => Promise<ApiResponse>
 }
 
+// Factory: cria service do dashboard usando HttpClient
 export function createDashboardService(client: HttpClient): DashboardService {
   return {
     async getDashboard() {

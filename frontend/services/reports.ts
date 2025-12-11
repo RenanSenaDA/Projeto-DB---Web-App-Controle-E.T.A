@@ -1,10 +1,14 @@
 import type { HttpClient } from "@/services/http"
 import { getApiBase, idToTag } from "@/lib/utils"
 
+// Service: geração de relatórios
+// getExcelRange(ids, range): baixa Excel com dados para tags/intervalo
+// Erros: lança Error em HTTP não-OK
 export type ReportsService = {
   getExcelRange: (ids: string[], range: { start: string; end: string }) => Promise<Blob>
 }
 
+// Factory: cria service de relatórios usando HttpClient
 export function createReportsService(client: HttpClient): ReportsService {
   return {
     async getExcelRange(ids, range) {

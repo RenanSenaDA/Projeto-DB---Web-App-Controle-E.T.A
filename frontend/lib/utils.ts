@@ -2,14 +2,19 @@ import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import type { ApiResponse } from "@/types/kpi"
 
+// Util: combina classes Tailwind com merge inteligente
+// Parâmetros: lista de classes/condicionais
+// Retorno: string de classes mescladas
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// Obtém base URL da API a partir do env; fallback para localhost
 export function getApiBase() {
   return process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000"
 }
 
+// Converte id interno (com _) em tag da API (com /)
 export function idToTag(id: string) {
   return id.replace(/_/g, "/")
 }
@@ -29,6 +34,7 @@ const CATEGORY_COLORS = [
   "bg-fuchsia-600",
 ]
 
+// Converte slug de categoria em título legível (capitaliza e troca _ por espaço)
 export function toCategoryTitle(slug: string) {
   const s = (slug || "").replace(/_/g, " ").trim()
   return s
@@ -38,6 +44,8 @@ export function toCategoryTitle(slug: string) {
     .join(" ")
 }
 
+// Cria mapa de categorias encontradas no payload -> { color, title }
+// Dependências: lista de cores ciclada por índice; adiciona 'default' se vazio
 export function buildCategoryMap(data: ApiResponse | null | undefined) {
   const found = new Set<string>()
   if (data?.data) {

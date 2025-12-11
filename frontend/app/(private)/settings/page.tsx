@@ -20,6 +20,7 @@ import type { KPIData } from "@/types/kpi";
 import { buildCategoryMap } from "@/lib/utils";
 
 export default function SettingsPage() {
+  // Página: configurações de limites e controle de alarmes, por estação/categoria
   const { loading, error, data, fetchData } = useApi();
   const [limits, setLimits] = useState<Record<string, number | null>>({});
   const [saving, setSaving] = useState<string | null>(null);
@@ -37,6 +38,7 @@ export default function SettingsPage() {
     return stationKeys.map((key) => ({ key, label: key.toUpperCase() }));
   }, [stationKeys]);
 
+  // Inicializa os limites a partir de todas as KPIs disponíveis
   useEffect(() => {
     if (!data) return;
     const allKPIs = Object.values(data.data ?? {}).flatMap((s) => s.kpis || []);
@@ -47,11 +49,13 @@ export default function SettingsPage() {
     setLimits(initial);
   }, [data]);
 
+  // Atualiza limite digitado localmente; vazio vira null
   const handleChange = (id: string, value: string) => {
     const parsed = value === "" ? null : Number(value);
     setLimits((prev) => ({ ...prev, [id]: parsed }));
   };
 
+  // Persiste limite de um KPI via API; exibe mensagens de sucesso/erro
   const saveLimit = async (id: string) => {
     const value = limits[id];
     if (value === null || Number.isNaN(value)) return;
@@ -69,6 +73,7 @@ export default function SettingsPage() {
     }
   };
 
+  // Carrega e alterna estado global de alarmes; protege contra erros
   useEffect(() => {
     const loadAlarmsStatus = async () => {
       setAlarmsLoading(true);
@@ -87,6 +92,7 @@ export default function SettingsPage() {
     loadAlarmsStatus();
   }, []);
 
+  // Alterna estado dos alarmes (on/off) na API; atualiza UI
   const toggleAlarms = async () => {
     if (alarmsEnabled === null) return;
     setToggling(true);

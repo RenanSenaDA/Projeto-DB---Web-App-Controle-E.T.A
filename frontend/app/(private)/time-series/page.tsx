@@ -27,6 +27,8 @@ const TIME_RANGES = [
 ];
 
 export default function TimeSeriesPage() {
+  // Página: séries temporais por estação e categoria
+  // Objetivo: construir tags dinâmicas por estação e filtros para chamar a API
   const { data, loading, error, fetchData } = useApi();
   
 
@@ -50,6 +52,7 @@ export default function TimeSeriesPage() {
     () => activeStation || stationKeys[0] || "",
     [activeStation, stationKeys]
   );
+  // Define tags ativas: se houver filtros, usa apenas IDs filtrados desta estação
   const activeTags = useMemo(() => {
     const stationKpis = data?.data?.[selectedStation]?.kpis ?? [];
     const stationIds = new Set(stationKpis.map((k) => k.id));
@@ -80,6 +83,7 @@ export default function TimeSeriesPage() {
   if (error) return <Error error={error} fetchData={fetchData} />;
   if (seriesError) return <Error error={seriesError} fetchData={refresh} />;
 
+  // Alterna seleção de um KPI no filtro; reduz chamadas quando filtrado
   const toggleFilter = (kpiId: string) => {
     setSelectedFilters((prev) =>
       prev.includes(kpiId)
@@ -88,6 +92,7 @@ export default function TimeSeriesPage() {
     );
   };
 
+  // Transforma pontos brutos em estrutura para o gráfico (rótulo HH:MM)
   const buildSeries = (tag: string) => {
     const points = seriesMap[tag] || [];
     return points.map((p) => ({
@@ -100,6 +105,7 @@ export default function TimeSeriesPage() {
     }));
   };
 
+  // Renderiza cartões de série para a lista de KPIs da categoria
   const renderSeries = (kpis: KPIData[]) => {
     const filtered = selectedFilters.length
       ? kpis.filter((k) => selectedFilters.includes(k.id))

@@ -27,6 +27,8 @@ export interface TimeSeriesPoint {
   value: number;
 }
 
+// Props: kpi (metadados), timeSeries (pontos para gráfico)
+// Erros: valores inválidos são tratados pelo gráfico (domínio auto)
 interface KpiSeriesCardProps {
   kpi: KPIData;
   timeSeries: TimeSeriesPoint[];
@@ -65,6 +67,8 @@ function CustomTooltip({ active, payload }: TooltipProps<number, string>) {
   );
 }
 
+// Componente: exibe série temporal em linha para um KPI
+// Intenção: facilitar análise visual com tooltip e última atualização
 export default function KpiSeriesCard({ kpi, timeSeries }: KpiSeriesCardProps) {
   return (
     <Card className="w-full border rounded-xl shadow-sm hover:shadow-md transition-all">

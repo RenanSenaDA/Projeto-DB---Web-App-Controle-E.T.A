@@ -4,11 +4,15 @@ import type { ApiResponse } from "@/types/kpi";
 import { createDashboardService } from "@/services/dashboard";
 import { defaultHttpClient } from "@/services/http";
 
+// Hook: carrega payload do dashboard e expõe utilitários
+// Retorno: { data, loading, error, fetchData, getKPIs }
+// Erros: seta 'error' e exibe toast quando falha conexão
 export default function useApi() {
   const [data, setData] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Busca dados do dashboard; silent evita estado de loading na UI
   const fetchData = useCallback(async (opts?: { silent?: boolean }) => {
     setLoading(opts?.silent ? false : true);
     setError(null);
@@ -32,6 +36,7 @@ export default function useApi() {
     return () => clearInterval(interval);
   }, [fetchData]);
 
+  // Retorna KPIs de uma estação; opcionalmente filtra pela categoria
   const getKPIs = useCallback(
     (stations: string, category?: string) => {
       if (!data) return [];

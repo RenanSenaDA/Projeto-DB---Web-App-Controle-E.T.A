@@ -23,7 +23,7 @@ for extra in [
     if os.path.exists(extra):
         load_dotenv(extra, override=False)
 
-
+# Converte URL para formato compatível com SQLAlchemy/psycopg v3
 def to_sqlalchemy_url(url: str) -> str:
     if not url:
         return url
@@ -36,7 +36,7 @@ def to_sqlalchemy_url(url: str) -> str:
         url = url.replace("postgresql://", "postgresql+psycopg://", 1)
     return url
 
-
+# Monta URL do banco a partir de envs; fallback para defaults locais
 def get_db_url() -> str:
     url = os.getenv("DATABASE_URL", "").strip()
     if url:
@@ -48,16 +48,18 @@ def get_db_url() -> str:
     db = os.getenv("PGDATABASE", os.getenv("POSTGRES_DB", "eta"))
     return f"postgresql+psycopg://{user}:{pwd}@{host}:{port}/{db}"
 
-
+# Cria Engine SQLAlchemy com pool_pre_ping para manter conexões válidas
 def get_engine() -> Engine:
     return create_engine(get_db_url(), pool_pre_ping=True)
 
 
 # --- Auth helpers ---
+# Gera hash de senha com pbkdf2
 def hash_password(plain: str) -> str:
     return pbkdf2_sha256.hash(plain)
 
 
+# Verifica senha contra hash pbkdf2/bcrypt
 def verify_password(plain: str, hashed: str) -> bool:
     try:
         if hashed.startswith("$pbkdf2-sha256$"):
@@ -69,11 +71,13 @@ def verify_password(plain: str, hashed: str) -> bool:
 
 # --- Models ---
 class LoginIn(BaseModel):
+    """Payload de login (email/senha)."""
     email: EmailStr
     password: str
 
 
 class RegisterIn(BaseModel):
+    """Payload de registro de usuário com validações."""
     name: str
     email: EmailStr
     password: str
@@ -103,12 +107,14 @@ class RegisterIn(BaseModel):
 
 
 class SensorOut(BaseModel):
+    """Modelo de saída de sensor (id/tag/unidade)."""
     id: int
     tag: str
     unit: Optional[str] = None
 
 
 class MeasurementPoint(BaseModel):
+    """Ponto de medição com timestamp, valor e unidade."""
     ts: datetime
     tag: str
     value: float
@@ -116,10 +122,12 @@ class MeasurementPoint(BaseModel):
 
 
 class LimitsOut(BaseModel):
+    """Estrutura de limites atuais por tag."""
     limits: Dict[str, float]
 
 
 class DashboardKPI(BaseModel):
+    """Representa um KPI no dashboard (metadados e categoria)."""
     id: str
     label: str
     value: Optional[float]
@@ -130,6 +138,7 @@ class DashboardKPI(BaseModel):
 
 
 class DashboardOut(BaseModel):
+    """Envelope do dashboard com meta e dados por estação."""
     meta: Dict[str, str]
     data: Dict[str, Dict[str, List[DashboardKPI]]]
 
@@ -145,6 +154,7 @@ app.add_middleware(
 
 
 def categorize(tag: str) -> str:
+    """Infere categoria a partir do prefixo da tag."""
     tl = tag.lower()
     if tl.startswith("qualidade/"):
         return "qualidade_da_agua"
@@ -156,6 +166,7 @@ LOCAL_TZ = os.getenv("LOCAL_TZ", os.getenv("TZ", "America/Fortaleza"))
 FEED_INTERVAL = int(os.getenv("FEED_INTERVAL", "5"))
 
 def _sanitize_df(df: pd.DataFrame) -> pd.DataFrame:
+    """Normaliza colunas ts/value e ordena; remove inválidos."""
     if df.empty:
         return df
     df["ts"] = (
@@ -169,6 +180,7 @@ def _sanitize_df(df: pd.DataFrame) -> pd.DataFrame:
 # --- Auth endpoints ---
 @app.post("/auth/login")
 def auth_login(payload: LoginIn):
+    """Autentica usuário por email/senha; retorna token dummy."""
     eng = get_engine()
     with eng.connect() as conn:
         row = conn.execute(
@@ -189,6 +201,7 @@ def auth_login(payload: LoginIn):
 
 @app.post("/auth/register")
 def auth_register(payload: RegisterIn):
+    """Registra novo usuário; falha se email existente."""
     eng = get_engine()
     with eng.begin() as conn:
         exists = conn.execute(text("SELECT 1 FROM eta.app_user WHERE lower(email)=:e LIMIT 1;"), {"e": payload.email.lower().strip()}).fetchone()
@@ -206,6 +219,7 @@ def auth_register(payload: RegisterIn):
 # --- Sensors ---
 @app.get("/sensors", response_model=List[SensorOut])
 def list_sensors():
+    """Lista sensores disponíveis ordenados por id."""
     eng = get_engine()
     with eng.connect() as conn:
         rows = conn.execute(text("SELECT id, tag, unit FROM eta.sensor ORDER BY id; ")).fetchall()
@@ -215,6 +229,7 @@ def list_sensors():
 # --- Measurements ---
 @app.get("/measurements/latest", response_model=List[MeasurementPoint])
 def latest_by_sensor():
+    """Retorna última medição de cada sensor com join em sensor."""
     eng = get_engine()
     with eng.connect() as conn:
         q = text(
@@ -236,6 +251,7 @@ def latest_by_sensor():
 
 @app.get("/measurements/series")
 def series(tags: str, minutes: int = 60):
+    """Busca séries para tags em janela de tempo (minutos)."""
     tag_list = [t.strip() for t in tags.split(",") if t.strip()]
     if not tag_list:
         return {}
@@ -267,6 +283,7 @@ def series(tags: str, minutes: int = 60):
 # --- Limits ---
 @app.get("/limits", response_model=LimitsOut)
 def get_limits():
+    """Obtém limites configurados para cada tag."""
     eng = get_engine()
     with eng.connect() as conn:
         rows = conn.execute(text("SELECT tag, limite FROM eta.config_limites; ")).fetchall()
@@ -280,11 +297,13 @@ def get_limits():
 
 
 class LimitsIn(BaseModel):
+    """Entrada para atualizar limites por tag."""
     limits: Dict[str, float]
 
 
 @app.put("/limits")
 def put_limits(payload: LimitsIn):
+    """Insere/atualiza limites; upsert por tag com conflito."""
     eng = get_engine()
     with eng.begin() as conn:
         for tag, lim in payload.limits.items():

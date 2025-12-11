@@ -8,6 +8,10 @@ type SeriesMap = Record<
   { ts: string; value: number; unit?: string | null }[]
 >;
 
+// Hook: busca séries temporais para uma lista de tags em um intervalo (minutos)
+// Parâmetros: tags (string[] com nomes de sensores), minutes (janela de tempo em minutos)
+// Retorno: { data: mapa tag->pontos, loading: boolean, error: string|null, refresh: () => Promise<void> }
+// Erros: falha de rede ou resposta HTTP não-OK geram mensagem via toast e preenchem 'error'
 export default function useSeries(tags: string[], minutes: number) {
   const [data, setData] = useState<SeriesMap>({});
   const [loading, setLoading] = useState(false);
@@ -18,6 +22,7 @@ export default function useSeries(tags: string[], minutes: number) {
     return [...tags].sort().join(",");
   }, [tags]);
 
+  // Executa a chamada de API por tags e minutos; evita requisição se não houver tags
   const fetchSeries = useCallback(async () => {
     const tagList = tagsKey ? tagsKey.split(",") : [];
     if (!tagList.length) return;
