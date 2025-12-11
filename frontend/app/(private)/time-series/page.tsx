@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { Tabs, TabsContent } from "@/ui/tabs";
 
 import Error from "@/components/feedback/error";
@@ -13,7 +13,8 @@ import KpiSeriesFilter from "@/components/kpi/kpi-serie-filter";
 
 import useApi from "@/hooks/use-api";
 import useSeries from "@/hooks/use-series";
-import { buildCategoryMap } from "@/lib/utils";
+import { buildCategoryMap, idToTag } from "@/lib/utils";
+import type { KPIData } from "@/types/kpi";
 
 const TIME_RANGES = [
   { label: "Últimos 15 min", value: 15 },
@@ -27,12 +28,7 @@ const TIME_RANGES = [
 
 export default function TimeSeriesPage() {
   const { data, loading, error, fetchData } = useApi();
-  const etaKpis = useMemo(() => data?.data.eta.kpis ?? [], [data]);
-  const ultrafiltracaoKpis = useMemo(
-    () => data?.data.ultrafiltracao.kpis ?? [],
-    [data]
-  );
-  const carvaoKpis = useMemo(() => data?.data.carvao.kpis ?? [], [data]);
+  
 
   const stationKeys = useMemo(() => {
     return Object.keys(data?.data ?? {}).filter(
@@ -50,17 +46,18 @@ export default function TimeSeriesPage() {
   const [activeStation, setActiveStation] = useState<string>("");
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [timeRange, setTimeRange] = useState<number>(10080);
+  const selectedStation = useMemo(
+    () => activeStation || stationKeys[0] || "eta",
+    [activeStation, stationKeys]
+  );
   const activeTags = useMemo(() => {
-    const kpis =
-      activeStation === "eta"
-        ? etaKpis
-        : activeStation === "ultrafiltracao"
-        ? ultrafiltracaoKpis
-        : carvaoKpis;
-    return (kpis || [])
-      .map((k) => k.id.replace(/_/g, "/"))
-      .sort();
-  }, [activeStation, etaKpis, ultrafiltracaoKpis, carvaoKpis]);
+    const stationKpis = data?.data?.[selectedStation]?.kpis ?? [];
+    const stationIds = new Set(stationKpis.map((k) => k.id));
+    const ids = selectedFilters.length > 0
+      ? selectedFilters.filter((id) => stationIds.has(id))
+      : stationKpis.map((k) => k.id);
+    return ids.map((id) => idToTag(id)).sort();
+  }, [selectedStation, data, selectedFilters]);
   const {
     data: seriesMap,
     loading: seriesLoading,
@@ -70,11 +67,14 @@ export default function TimeSeriesPage() {
 
   const categoryMap = buildCategoryMap(data);
 
-  useEffect(() => {
-    if (!activeStation || !stationKeys.includes(activeStation)) {
-      if (stationKeys.length > 0) setActiveStation(stationKeys[0]);
-    }
-  }, [stationKeys, activeStation]);
+
+  const allKpis = useMemo(() => {
+    const stations = Object.values(data?.data ?? {});
+    const merged = stations.flatMap((s) => s.kpis || []);
+    const uniq = new Map<string, typeof merged[number]>();
+    merged.forEach((k) => uniq.set(k.id, k));
+    return Array.from(uniq.values());
+  }, [data]);
 
   if (loading || seriesLoading) return <Loading />;
   if (error) return <Error error={error} fetchData={fetchData} />;
@@ -88,16 +88,6 @@ export default function TimeSeriesPage() {
     );
   };
 
-  const allKpis = Array.from(
-    new Map<string, (typeof etaKpis)[number]>([
-      ...etaKpis.map((k) => [k.id, k] as [string, (typeof etaKpis)[number]]),
-      ...ultrafiltracaoKpis.map(
-        (k) => [k.id, k] as [string, (typeof etaKpis)[number]]
-      ),
-      ...carvaoKpis.map((k) => [k.id, k] as [string, (typeof etaKpis)[number]]),
-    ]).values()
-  );
-
   const buildSeries = (tag: string) => {
     const points = seriesMap[tag] || [];
     return points.map((p) => ({
@@ -110,7 +100,7 @@ export default function TimeSeriesPage() {
     }));
   };
 
-  const renderSeries = (kpis: typeof etaKpis) => {
+  const renderSeries = (kpis: KPIData[]) => {
     const filtered = selectedFilters.length
       ? kpis.filter((k) => selectedFilters.includes(k.id))
       : kpis;
@@ -119,7 +109,7 @@ export default function TimeSeriesPage() {
       <KpiSeriesCard
         key={kpi.id}
         kpi={{ ...kpi, value: kpi.value ?? undefined, unit: kpi.unit ?? "" }}
-        timeSeries={buildSeries(kpi.id.replace(/_/g, "/"))}
+        timeSeries={buildSeries(idToTag(kpi.id))}
       />
     ));
   };
@@ -153,7 +143,7 @@ export default function TimeSeriesPage() {
       />
 
       <Tabs
-        value={activeStation || stationKeys[0] || "eta"}
+        value={selectedStation}
         className="w-full mb-4"
         onValueChange={(value) => setActiveStation(value as string)}
       >
@@ -162,13 +152,7 @@ export default function TimeSeriesPage() {
         {stationKeys.map((key) => (
           <TabsContent key={key} value={key}>
             {Object.entries(categoryMap).map(([category, config]) => {
-              const stationKpis =
-                key === "eta"
-                  ? etaKpis
-                  : key === "ultrafiltracao"
-                  ? ultrafiltracaoKpis
-                  : carvaoKpis;
-
+              const stationKpis = data?.data?.[key]?.kpis ?? [];
               const sectionItems = stationKpis.filter((k) => k.category === category);
               if (!sectionItems.length) return null;
 

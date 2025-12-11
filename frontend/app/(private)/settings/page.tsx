@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
 
 import { Tabs, TabsContent } from "@/ui/tabs";
@@ -27,20 +27,23 @@ export default function SettingsPage() {
   const [alarmsLoading, setAlarmsLoading] = useState<boolean>(true);
   const [toggling, setToggling] = useState<boolean>(false);
 
+  const stationKeys = useMemo(() => {
+    return Object.keys(data?.data ?? {}).filter(
+      (key) => (data?.data?.[key]?.kpis?.length ?? 0) > 0
+    );
+  }, [data]);
+
+  const stationsList = useMemo(() => {
+    return stationKeys.map((key) => ({ key, label: key.toUpperCase() }));
+  }, [stationKeys]);
+
   useEffect(() => {
     if (!data) return;
-
-    const allKPIs = [
-      ...data.data.eta.kpis,
-      ...data.data.ultrafiltracao.kpis,
-      ...data.data.carvao.kpis,
-    ];
-
+    const allKPIs = Object.values(data.data ?? {}).flatMap((s) => s.kpis || []);
     const initial: Record<string, number | null> = {};
     allKPIs.forEach((k) => {
       initial[k.id] = k.limit ?? null;
     });
-
     setLimits(initial);
   }, [data]);
 
@@ -105,11 +108,6 @@ export default function SettingsPage() {
   if (error) return <p>Erro ao carregar</p>;
   if (!data) return null;
 
-  const stations = {
-    eta: data.data.eta.kpis,
-    ultrafiltracao: data.data.ultrafiltracao.kpis,
-    carvao: data.data.carvao.kpis,
-  };
 
   const categoryMap = buildCategoryMap(data);
 
@@ -147,13 +145,13 @@ export default function SettingsPage() {
         </Button>
       </div>
 
-      <Tabs defaultValue="eta" className="w-full">
-        <TabsListStation />
+      <Tabs defaultValue={stationKeys[0] ?? ""} className="w-full">
+        <TabsListStation stations={stationsList} />
 
-        {Object.entries(stations).map(([key, kpis]) => (
+        {stationKeys.map((key) => (
           <TabsContent key={key} value={key}>
             {Object.entries(categoryMap).map(([category, config]) => {
-              const sectionItems = (kpis as KPIData[]).filter((k) => k.category === category);
+              const sectionItems = (data.data[key].kpis as KPIData[]).filter((k) => k.category === category);
               if (!sectionItems.length) return null;
               return (
                 <div key={category} className="mb-10">

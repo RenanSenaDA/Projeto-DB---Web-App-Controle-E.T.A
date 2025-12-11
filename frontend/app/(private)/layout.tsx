@@ -1,5 +1,4 @@
 import { AppSidebar } from "@/components/app-sidebar";
-import SystemStatus from "@/components/feedback/system-status";
 import { SidebarProvider, SidebarTrigger } from "@/ui/sidebar";
 
 export default function DashboardLayout({
@@ -12,10 +11,7 @@ export default function DashboardLayout({
       <AppSidebar />
       <main className="w-full">
         <div className="p-2">
-          <div className="flex items-center justify-between">
-            <SidebarTrigger />
-            <SystemStatus />
-          </div>
+          <SidebarTrigger />
           {children}
         </div>
       </main>

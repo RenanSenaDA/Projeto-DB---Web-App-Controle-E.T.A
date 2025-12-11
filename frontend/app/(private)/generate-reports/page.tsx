@@ -71,16 +71,18 @@ export default function ReportsPage() {
               onValueChange={setExpandedSystems}
               className="space-y-4"
             >
-              {Object.entries(data.data).map(([key, systemData]) => (
-                <StepAccordionItem
-                  key={key}
-                  systemKey={key}
-                  kpis={systemData.kpis}
-                  selectedKpis={selectedKpis}
-                  onToggleSystemAll={toggleSystemAll}
-                  onToggleKpi={toggleKpi}
-                />
-              ))}
+              {Object.entries(data.data)
+                .filter(([, systemData]) => (systemData.kpis?.length ?? 0) > 0)
+                .map(([key, systemData]) => (
+                  <StepAccordionItem
+                    key={key}
+                    systemKey={key}
+                    kpis={systemData.kpis}
+                    selectedKpis={selectedKpis}
+                    onToggleSystemAll={toggleSystemAll}
+                    onToggleKpi={toggleKpi}
+                  />
+                ))}
             </Accordion>
           </div>
         </div>
