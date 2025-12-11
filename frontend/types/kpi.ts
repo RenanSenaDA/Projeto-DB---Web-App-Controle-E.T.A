@@ -29,7 +29,7 @@ export type KPIData = {
   history?: KPIHistoryPoint[];
 };
 
-export interface stationData {
+export interface StationData {
   kpis: KPIData[];
 }
 
@@ -39,9 +39,7 @@ export interface DashboardResponse {
     status: string;
   };
   data: {
-    eta: stationData;
-    ultrafiltracao: stationData;
-    carvao: stationData;
+    [key: string]: StationData;
   };
 }
 

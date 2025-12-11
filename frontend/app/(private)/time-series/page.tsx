@@ -32,6 +32,19 @@ export default function TimeSeriesPage() {
   );
   const carvaoKpis = useMemo(() => data?.data.carvao.kpis ?? [], [data]);
 
+  const stationKeys = useMemo(() => {
+    return Object.keys(data?.data ?? {}).filter(
+      (key) => (data?.data?.[key]?.kpis?.length ?? 0) > 0
+    );
+  }, [data]);
+
+  const stationsList = useMemo(() => {
+    return stationKeys.map((key) => ({
+      key,
+      label: key.toUpperCase(),
+    }));
+  }, [stationKeys]);
+
   type StationKey = "eta" | "ultrafiltracao" | "carvao";
 
   const [activeStation, setActiveStation] = useState<StationKey>("eta");
@@ -132,34 +145,29 @@ export default function TimeSeriesPage() {
       />
 
       <Tabs
-        defaultValue="eta"
+        defaultValue={stationKeys[0] ?? "eta"}
         className="w-full border-b border-gray-300 mb-4"
         onValueChange={(value) =>
           setActiveStation(value as StationKey)
         }
       >
-        <TabsListStation />
+        <TabsListStation stations={stationsList} />
 
-        <TabsContent
-          value="eta"
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          {renderSeries(etaKpis)}
-        </TabsContent>
-
-        <TabsContent
-          value="ultrafiltracao"
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          {renderSeries(ultrafiltracaoKpis)}
-        </TabsContent>
-
-        <TabsContent
-          value="carvao"
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-        >
-          {renderSeries(carvaoKpis)}
-        </TabsContent>
+        {stationKeys.map((key) => (
+          <TabsContent
+            key={key}
+            value={key}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {renderSeries(
+              key === "eta"
+                ? etaKpis
+                : key === "ultrafiltracao"
+                ? ultrafiltracaoKpis
+                : carvaoKpis
+            )}
+          </TabsContent>
+        ))}
       </Tabs>
     </div>
   );

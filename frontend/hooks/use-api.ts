@@ -26,18 +26,14 @@ export default function useApi() {
     }
   }, []);
 
-  // Efeito de montagem e polling
   useEffect(() => {
     fetchData();
     const interval = setInterval(() => fetchData({ silent: true }), 60000);
     return () => clearInterval(interval);
   }, [fetchData]);
 
-  /**
-   * Utilitário para filtrar KPIs na UI de forma limpa
-   */
   const getKPIs = useCallback(
-    (stations: "eta" | "ultrafiltracao" | "carvao", category?: KPICategory) => {
+    (stations: string, category?: KPICategory) => {
       if (!data) return [];
 
       const stationsData = data.data[stations];
