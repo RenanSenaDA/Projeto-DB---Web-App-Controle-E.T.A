@@ -1,10 +1,10 @@
-import type { DashboardResponse } from "@/types/kpi";
+import type { ApiResponse } from "@/types/kpi";
 import { useState } from "react";
 import { toast } from "sonner";
 import { createReportsService } from "@/services/reports";
 import { defaultHttpClient } from "@/services/http";
 
-export default function useReportGenerator(apiData: DashboardResponse | null) {
+export default function useReportGenerator(apiData: ApiResponse | null) {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const generateExcel = async (

@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import type { DashboardResponse, KPICategory } from "@/types/kpi";
+import type { ApiResponse } from "@/types/kpi";
 import { createDashboardService } from "@/services/dashboard";
 import { defaultHttpClient } from "@/services/http";
 
 export default function useApi() {
-  const [data, setData] = useState<DashboardResponse | null>(null);
+  const [data, setData] = useState<ApiResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,7 +15,7 @@ export default function useApi() {
     try {
       const svc = createDashboardService(defaultHttpClient);
       const json = await svc.getDashboard();
-      setData(json as DashboardResponse);
+      setData(json as ApiResponse);
     } catch (err) {
       console.error("Erro na API:", err);
       const msg = "Não foi possível conectar ao servidor de dados.";
@@ -33,7 +33,7 @@ export default function useApi() {
   }, [fetchData]);
 
   const getKPIs = useCallback(
-    (stations: string, category?: KPICategory) => {
+    (stations: string, category?: string) => {
       if (!data) return [];
 
       const stationsData = data.data[stations];

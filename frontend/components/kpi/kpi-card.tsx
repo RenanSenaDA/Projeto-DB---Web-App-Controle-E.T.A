@@ -10,33 +10,17 @@ import type { KPIData } from "@/types/kpi";
 import { formatValue, formatRelativeTime } from "@/lib/format";
 import { Badge } from "@/ui/badge";
 
-const VARIANTS = {
-  operacional: {
-    border: "border-l-blue-600",
-    text: "text-blue-600",
-    bg: "bg-blue-50",
-  },
-  qualidade_da_agua: {
-    border: "border-l-emerald-600",
-    text: "text-emerald-600",
-    bg: "bg-emerald-50",
-  },
-  limpeza_e_manutencao: {
-    border: "border-l-amber-500",
-    text: "text-amber-500",
-    bg: "bg-amber-50",
-  },
-  integridade_e_alarme: {
-    border: "border-l-rose-600",
-    text: "text-rose-600",
-    bg: "bg-rose-50",
-  },
-  default: {
-    border: "border-l-slate-400",
-    text: "text-slate-500",
-    bg: "bg-slate-100",
-  },
-};
+type StyleTriplet = { border: string; text: string; bg: string }
+
+function deriveStyles(colorClass?: string): StyleTriplet {
+  if (!colorClass || !colorClass.startsWith("bg-")) {
+    return { border: "border-l-slate-400", text: "text-slate-500", bg: "bg-slate-100" }
+  }
+  const border = colorClass.replace("bg-", "border-l-")
+  const text = colorClass.replace("bg-", "text-")
+  const bg = colorClass.replace(/(600|500|400|300|200|100)/, "50")
+  return { border, text, bg }
+}
 
 export default function KPICard({
   label,
@@ -44,11 +28,10 @@ export default function KPICard({
   updated_at,
   value,
   limit,
-  category,
-  status_operation,
   className,
-}: KPIData & { className?: string }) {
-  const styles = VARIANTS[category] || VARIANTS.default;
+  colorClass,
+}: Omit<KPIData, "category"> & { className?: string; colorClass?: string }) {
+  const styles = deriveStyles(colorClass)
   const aboveLimit =
     value !== null &&
     value !== undefined &&
@@ -69,12 +52,9 @@ export default function KPICard({
           {label}
         </CardTitle>
 
-        {(status_operation || aboveLimit) && (
+        {aboveLimit && (
           <CardAction className="flex flex-col items-end gap-1">
-            {status_operation && (
-              <span className="text-xs text-slate-500">{status_operation}</span>
-            )}
-            {aboveLimit && <Badge variant="destructive">Acima do limite</Badge>}
+            <Badge variant="destructive">Acima do limite</Badge>
           </CardAction>
         )}
       </CardHeader>

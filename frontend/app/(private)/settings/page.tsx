@@ -16,7 +16,8 @@ import { createLimitsService } from "@/services/limits";
 import { createAlarmsService } from "@/services/alarms";
 
 import useApi from "@/hooks/use-api";
-import { SECTIONS, type KPICategory, type KPIData } from "@/types/kpi";
+import type { KPIData } from "@/types/kpi";
+import { buildCategoryMap } from "@/lib/utils";
 
 export default function SettingsPage() {
   const { loading, error, data, fetchData } = useApi();
@@ -110,6 +111,8 @@ export default function SettingsPage() {
     carvao: data.data.carvao.kpis,
   };
 
+  const categoryMap = buildCategoryMap(data);
+
   return (
     <div className="container mx-auto p-6">
       <PageHeader
@@ -149,22 +152,12 @@ export default function SettingsPage() {
 
         {Object.entries(stations).map(([key, kpis]) => (
           <TabsContent key={key} value={key}>
-            {(
-              Object.entries(SECTIONS) as [
-                KPICategory,
-                (typeof SECTIONS)[keyof typeof SECTIONS]
-              ][]
-            ).map(([category, config]) => {
-              const sectionItems = (kpis as KPIData[]).filter(
-                (k) => k.category === category
-              );
-
+            {Object.entries(categoryMap).map(([category, config]) => {
+              const sectionItems = (kpis as KPIData[]).filter((k) => k.category === category);
               if (!sectionItems.length) return null;
-
               return (
                 <div key={category} className="mb-10">
                   <SectionLabel title={config.title} color={config.color} />
-
                   <div className="space-y-4">
                     {sectionItems.map((kpi) => (
                       <div

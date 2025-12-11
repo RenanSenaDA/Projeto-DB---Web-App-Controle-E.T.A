@@ -8,11 +8,10 @@ import Error from "@/components/feedback/error";
 import PageHeader from "@/components/header-page";
 import Loading from "@/components/feedback/loading";
 import KPISection from "@/components/kpi/kpi-section";
-import KPIStatusCard from "@/components/kpi/kpi-status-card";
 import TabsListStation from "@/components/tabs-list-station"; 
 
-import { SECTIONS } from "@/types/kpi";
-import type { KPIData, KPICategory } from "@/types/kpi";
+import type { KPIData } from "@/types/kpi";
+import { buildCategoryMap } from "@/lib/utils";
 
 import useApi from "@/hooks/use-api";
 
@@ -33,6 +32,7 @@ export default function DashboardPage() {
   }, [stationKeys]);
 
   const lastUpdate = data?.meta.timestamp || "--:--:--";
+  const categoryMap = buildCategoryMap(data);
 
   if (loading) return <Loading />;
   if (error) return <Error error={error} fetchData={fetchData} />;
@@ -51,22 +51,14 @@ export default function DashboardPage() {
             key={kpi.id}
             {...kpi}
             updated_at={kpi.updated_at ?? lastUpdate}
+            colorClass={categoryMap[kpi.category]?.color}
           />
         ))}
       </div>
     );
   };
 
-  const renderStatusCard = (kpis: KPIData[]) => {
-    const item = kpis.find((k) => k.id === "fca_status_filtro");
-    if (!item) return null;
-
-    return (
-      <div className="mb-4">
-        <KPIStatusCard value={item.status_operation ?? null} />
-      </div>
-    );
-  };
+  const renderStatusCard = () => null;
 
   return (
     <div className="container mx-auto min-h-screen p-6 font-sans">
@@ -87,30 +79,18 @@ export default function DashboardPage() {
               value={stationKey}
               className="space-y-8 animate-in fade-in-50 duration-300"
             >
-              {(Object.keys(SECTIONS) as KPICategory[]).map((category) => {
-                const config = SECTIONS[category];
+              {Object.entries(categoryMap).map(([category, config]) => {
                 const sectionKPIs = getKPIs(stationKey, category);
-
                 if (!sectionKPIs.length) return null;
-
-                const isCarvaoOperacional =
-                  category === "operacional" && stationKey === "carvao";
-
                 return (
                   <KPISection
                     key={category}
                     color={config.color}
                     title_section={config.title}
                   >
-                    {isCarvaoOperacional && renderStatusCard(sectionKPIs)}
+                    {renderStatusCard()}
 
-                    {renderCardList(
-                      isCarvaoOperacional
-                        ? sectionKPIs.filter(
-                            (k) => k.id !== "fca_status_filtro"
-                          )
-                        : sectionKPIs
-                    )}
+                    {renderCardList(sectionKPIs)}
                   </KPISection>
                 );
               })}
