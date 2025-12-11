@@ -1,60 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Frontend AquaLink
 
-## Getting Started
+Aplicação web construída com Next.js e TypeScript para monitorar KPIs por estação. O frontend é totalmente dinâmico: novas estações e categorias no JSON da API aparecem automaticamente nas páginas.
 
-First, run the development server:
+## Início Rápido
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
----
-
-# Frontend AquaLink (Resumo)
-
-Aplicação web para monitorar a ETA.
-
-## Como usar
-
-- Iniciar: `npm run dev` e acessar `http://localhost:3000`.
+- Rodar desenvolvimento: `npm run dev` e acessar `http://localhost:3000`.
 - Login: `http://localhost:3000/login`.
-- Navegação: use o menu lateral (Dashboard, Séries, Relatórios, Configurações).
-- Sair: botão “Sair” no rodapé do menu.
+- Navegação: menu lateral com Dashboard, Séries Temporais, Relatórios e Configurações.
 
-## Páginas principais
+## Arquitetura
 
-- Dashboard: visão geral dos KPIs.
-- Séries Temporais: gráficos com histórico.
-- Relatórios: gerar arquivo Excel.
-- Configurações: ajustar limites dos KPIs e salvar.
+- Páginas (`app/(private)`):
+  - `dashboard/page.tsx`: visão geral dos KPIs por estação/categoria.
+  - `time-series/page.tsx`: gráficos históricos por estação/categoria.
+  - `generate-reports/page.tsx`: geração de relatórios Excel.
+  - `settings/page.tsx`: limites de KPIs e controle de alarmes.
+- Componentes (`components`):
+  - `kpi/*`: cartões, seções, filtro e visualização de séries.
+  - `feedback/*`: estados de carregamento e erro.
+  - `tabs-list-station.tsx`: lista de abas de estações dinâmica.
+- Hooks (`hooks`):
+  - `use-api.ts`: carrega o payload do dashboard e expõe utilitários.
+  - `use-series.ts`: busca séries temporais para tags em um intervalo.
+- Services (`services`):
+  - `dashboard.ts`, `measurements.ts`, `limits.ts`, `reports.ts`: chamadas HTTP com cliente injetável.
+- Utils (`lib/utils.ts`):
+  - `buildCategoryMap`: mapeia categorias para título e cor.
+  - `idToTag`: converte `id` com `_` para tag com `/` (compatível com API).
+- UI (`ui/*`):
+  - Abstrações de Tabs, Card, Chart, etc., usando Tailwind e Recharts.
 
-## Configuração
+## Fluxo de Dados
 
-- API: opcional `NEXT_PUBLIC_API_BASE_URL` para apontar o backend.
+- Dashboard:
+  - Carrega `ApiResponse` e deriva `stationKeys` dinamicamente.
+  - Renderiza seções por `category` via `buildCategoryMap`.
+- Séries Temporais:
+  - Monta `activeTags` da estação ativa; quando há KPIs filtradas, envia apenas essas tags.
+  - Chama `/measurements/series?tags=...&minutes=...` com `no-store` para dados atuais.
+  - Converte pontos em labels `HH:MM` para o gráfico.
+- Configurações:
+  - Inicializa limites a partir de todas as KPIs e persiste via `/limits`.
+- Relatórios:
+  - Gera Excel opcionalmente filtrando por tags selecionadas e intervalo de datas.
+
+## Dinamismo (Estações e Categorias)
+
+- Estações: derivadas de `data.data` sem nomes fixos; abas são construídas a partir de `stationKeys`.
+- Categorias: encontradas dinamicamente com `buildCategoryMap`, que define título e cor.
+- KPIs: listas são consolidadas dinamicamente, evitando duplicação por estação.
+
+## Estilização e Gráficos
+
+- Tailwind CSS com `clsx` e `tailwind-merge` para compor classes.
+- Recharts com `ChartContainer`/`ChartTooltip` para tema e tooltip.
+
+## Variáveis de Ambiente
+
+- `NEXT_PUBLIC_API_BASE_URL`: URL base do backend; fallback `http://localhost:8000`.
+
+## Scripts
+
+- `dev`: inicia servidor de desenvolvimento.
+- `lint`: executa ESLint sobre o projeto.
+
+## Convenções de Código
+
+- TypeScript com `strict` e paths `@/*`.
+- `HttpClient` injetável para facilitar testes/mudança de implementação.
+- `idToTag`: padroniza conversão de `id` para tag da API.
+
+## Tratamento de Erros
+
+- Hooks expõem `error` e `loading` e notificam com `toast` quando aplicável.
+- Páginas exibem `Loading` e `Error` com ações de retry.
+
+## Extensão
+
+- Novas estações/categorias: basta retornar no JSON da API; UI se adapta.
