@@ -1,17 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Tabs, TabsContent } from "@/ui/tabs";
 
 import Error from "@/components/feedback/error";
 import PageHeader from "@/components/header-page";
 import Loading from "@/components/feedback/loading";
 import TabsListStation from "@/components/tabs-list-station";
+import KPISection from "@/components/kpi/kpi-section";
 import KpiSeriesCard from "@/components/kpi/kpi-series-card";
 import KpiSeriesFilter from "@/components/kpi/kpi-serie-filter";
 
 import useApi from "@/hooks/use-api";
 import useSeries from "@/hooks/use-series";
+import { buildCategoryMap } from "@/lib/utils";
 
 const TIME_RANGES = [
   { label: "Últimos 15 min", value: 15 },
@@ -45,11 +47,9 @@ export default function TimeSeriesPage() {
     }));
   }, [stationKeys]);
 
-  type StationKey = "eta" | "ultrafiltracao" | "carvao";
-
-  const [activeStation, setActiveStation] = useState<StationKey>("eta");
+  const [activeStation, setActiveStation] = useState<string>("");
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
-  const [timeRange, setTimeRange] = useState<number>(1440);
+  const [timeRange, setTimeRange] = useState<number>(10080);
   const activeTags = useMemo(() => {
     const kpis =
       activeStation === "eta"
@@ -67,6 +67,14 @@ export default function TimeSeriesPage() {
     error: seriesError,
     refresh,
   } = useSeries(activeTags, timeRange);
+
+  const categoryMap = buildCategoryMap(data);
+
+  useEffect(() => {
+    if (!activeStation || !stationKeys.includes(activeStation)) {
+      if (stationKeys.length > 0) setActiveStation(stationKeys[0]);
+    }
+  }, [stationKeys, activeStation]);
 
   if (loading || seriesLoading) return <Loading />;
   if (error) return <Error error={error} fetchData={fetchData} />;
@@ -145,27 +153,33 @@ export default function TimeSeriesPage() {
       />
 
       <Tabs
-        defaultValue={stationKeys[0] ?? "eta"}
-        className="w-full border-b border-gray-300 mb-4"
-        onValueChange={(value) =>
-          setActiveStation(value as StationKey)
-        }
+        value={activeStation || stationKeys[0] || "eta"}
+        className="w-full mb-4"
+        onValueChange={(value) => setActiveStation(value as string)}
       >
         <TabsListStation stations={stationsList} />
 
         {stationKeys.map((key) => (
-          <TabsContent
-            key={key}
-            value={key}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
-            {renderSeries(
-              key === "eta"
-                ? etaKpis
-                : key === "ultrafiltracao"
-                ? ultrafiltracaoKpis
-                : carvaoKpis
-            )}
+          <TabsContent key={key} value={key}>
+            {Object.entries(categoryMap).map(([category, config]) => {
+              const stationKpis =
+                key === "eta"
+                  ? etaKpis
+                  : key === "ultrafiltracao"
+                  ? ultrafiltracaoKpis
+                  : carvaoKpis;
+
+              const sectionItems = stationKpis.filter((k) => k.category === category);
+              if (!sectionItems.length) return null;
+
+              return (
+                <KPISection key={category} color={config.color} title_section={config.title}>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    {renderSeries(sectionItems)}
+                  </div>
+                </KPISection>
+              );
+            })}
           </TabsContent>
         ))}
       </Tabs>
