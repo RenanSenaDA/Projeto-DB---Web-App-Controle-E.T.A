@@ -2,6 +2,10 @@ import { createDashboardService } from "@/services/dashboard";
 import { defaultHttpClient } from "@/services/http";
 import SettingsClient from "./settings-client";
 
+/**
+ * Página de Configurações (Server Component).
+ * Busca dados iniciais para exibir os limites atuais das KPIs.
+ */
 export default async function SettingsPage() {
   const svc = createDashboardService(defaultHttpClient);
   let initialData = null;

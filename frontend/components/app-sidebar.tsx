@@ -12,7 +12,7 @@ import {
   ChevronsUpDown,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import useAuth from "@/hooks/use-auth";
+import useAuth from "@/hooks/auth/use-auth";
 
 import {
   Sidebar,
@@ -26,6 +26,10 @@ import {
   SidebarFooter,
 } from "@/ui/sidebar";
 
+/**
+ * Lista de itens de navegação da sidebar.
+ * Cada item contém título, URL e ícone.
+ */
 const items = [
   {
     title: "Dashboard",
@@ -49,6 +53,13 @@ const items = [
   },
 ];
 
+/**
+ * Componente de barra lateral (Sidebar) da aplicação.
+ * Responsável pela navegação principal e exibição de informações do usuário.
+ * 
+ * @component
+ * @client Este componente roda no cliente (use client) para interatividade e acesso ao contexto de rota.
+ */
 export function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();

@@ -7,6 +7,10 @@ export const metadata: Metadata = {
   description: "Sistema de Monitoramento de ETA",
 };
 
+/**
+ * Layout raiz da aplicação.
+ * Envolve toda a aplicação com configurações globais como fontes, estilos e toasts.
+ */
 export default function RootLayout({
   children,
 }: Readonly<{

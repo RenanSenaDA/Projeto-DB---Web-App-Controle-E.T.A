@@ -1,10 +1,14 @@
-// Abstração mínima de cliente HTTP para facilitar testes e troca de implementação
-// fetch(url, init?): delega para window.fetch
+/**
+ * Interface para abstração de cliente HTTP.
+ * Permite trocar a implementação (fetch, axios, mock) sem afetar os serviços.
+ */
 export type HttpClient = {
   fetch: (url: string, init?: RequestInit) => Promise<Response>
 }
 
-// Cliente padrão: usa fetch nativo do navegador
+/**
+ * Cliente HTTP padrão usando a Fetch API nativa do navegador/Node.js.
+ */
 export const defaultHttpClient: HttpClient = {
   fetch: (url, init) => fetch(url, init),
 }

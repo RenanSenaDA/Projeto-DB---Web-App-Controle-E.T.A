@@ -1,80 +1,90 @@
 # Frontend AquaLink
 
-Aplicação web construída com Next.js e TypeScript para monitorar KPIs por estação. O frontend é totalmente dinâmico: novas estações e categorias no JSON da API aparecem automaticamente nas páginas.
+Aplicação web desenvolvida com **Next.js 15 (App Router)** e **TypeScript**, focada no monitoramento de estações de tratamento de água/esgoto. O sistema é projetado para ser **White Label Ready**, altamente performático e arquiteturalmente desacoplado seguindo o padrão **MVVM (Model-View-ViewModel)**.
 
-## Início Rápido
+## 🚀 Tecnologias Principais
 
-- Rodar desenvolvimento: `npm run dev` e acessar `http://localhost:3000`.
-- Login: `http://localhost:3000/login`.
-- Navegação: menu lateral com Dashboard, Séries Temporais, Relatórios e Configurações.
+- **Framework**: Next.js 15 (App Router)
+- **Linguagem**: TypeScript (Strict Mode)
+- **Estilização**: Tailwind CSS (com variáveis CSS para temas)
+- **Componentes**: Shadcn/ui (Radix UI)
+- **Gráficos**: Recharts
+- **Ícones**: Lucide React
+- **HTTP Client**: Fetch API com abstração customizada
 
-## Arquitetura
+## 🏛️ Arquitetura e Padrões
 
-- Páginas (`app/(private)`):
-  - `dashboard/page.tsx`: visão geral dos KPIs por estação/categoria.
-  - `time-series/page.tsx`: gráficos históricos por estação/categoria.
-  - `generate-reports/page.tsx`: geração de relatórios Excel.
-  - `settings/page.tsx`: limites de KPIs e controle de alarmes.
-- Componentes (`components`):
-  - `kpi/*`: cartões, seções, filtro e visualização de séries.
-  - `feedback/*`: estados de carregamento e erro.
-  - `tabs-list-station.tsx`: lista de abas de estações dinâmica.
-- Hooks (`hooks`):
-  - `use-api.ts`: carrega o payload do dashboard e expõe utilitários.
-  - `use-series.ts`: busca séries temporais para tags em um intervalo.
-- Services (`services`):
-  - `dashboard.ts`, `measurements.ts`, `limits.ts`, `reports.ts`: chamadas HTTP com cliente injetável.
-- Utils (`lib/utils.ts`):
-  - `buildCategoryMap`: mapeia categorias para título e cor.
-  - `idToTag`: converte `id` com `_` para tag com `/` (compatível com API).
-- UI (`ui/*`):
-  - Abstrações de Tabs, Card, Chart, etc., usando Tailwind e Recharts.
+O projeto segue rigorosos filtros de qualidade:
 
-## Fluxo de Dados
+1.  **Atomização & SOLID**: Componentes pequenos, reutilizáveis e com responsabilidade única.
+2.  **Desacoplamento (MVVM)**: Separação clara entre UI (View) e Lógica (ViewModel).
+    - **View**: Componentes React em `app/` e `components/`. Apenas renderizam dados.
+    - **ViewModel**: Custom Hooks em `hooks/view/`. Gerenciam estado, regras de negócio da tela e chamadas à API.
+    - **Model**: Interfaces em `types/` e Serviços em `services/`.
+3.  **Next.js Performance**:
+    - Uso intensivo de **Server Components** para o shell da aplicação.
+    - **Client Components** apenas onde há interatividade (hooks, eventos).
+    - Carregamento de dados otimizado e estratégias de cache.
+4.  **White Label Ready**:
+    - Zero uso de cores Hexadecimais hardcoded (`#ffffff`).
+    - Uso exclusivo de classes semânticas do Tailwind (`bg-primary`, `text-muted-foreground`) mapeadas para variáveis CSS (`globals.css`).
+    - Script de validação `npm run check-hex` para garantir conformidade.
 
-- Dashboard:
-  - Carrega `ApiResponse` e deriva `stationKeys` dinamicamente.
-  - Renderiza seções por `category` via `buildCategoryMap`.
-- Séries Temporais:
-  - Monta `activeTags` da estação ativa; quando há KPIs filtradas, envia apenas essas tags.
-  - Chama `/measurements/series?tags=...&minutes=...` com `no-store` para dados atuais.
-  - Converte pontos em labels `HH:MM` para o gráfico.
-- Configurações:
-  - Inicializa limites a partir de todas as KPIs e persiste via `/limits`.
-- Relatórios:
-  - Gera Excel opcionalmente filtrando por tags selecionadas e intervalo de datas.
+## 📂 Estrutura de Pastas
 
-## Dinamismo (Estações e Categorias)
+```
+frontend/
+├── app/                  # Rotas (Next.js App Router)
+│   ├── (private)/        # Rotas protegidas (Dashboard, Settings, etc.)
+│   ├── (public)/         # Rotas públicas (Login, Register)
+│   └── layout.tsx        # Layout raiz
+├── components/           # Componentes de UI (Negócio)
+│   ├── feedback/         # Loadings, Error States, Empty States
+│   ├── kpi/              # Cards e visualizações de KPI
+│   └── ...
+├── hooks/                # Lógica da Aplicação
+│   ├── api/              # Hooks de integração de dados (Data Fetching)
+│   ├── auth/             # Hooks de autenticação
+│   ├── ui/               # Hooks de interface (responsividade, etc)
+│   └── view/             # View Models (Lógica específica de cada página)
+├── lib/                  # Utilitários puros (formatadores, helpers)
+├── services/             # Camada de Infraestrutura HTTP
+├── types/                # Definições de Tipos TypeScript
+└── ui/                   # Componentes Base (Shadcn/ui - Botões, Inputs, etc.)
+```
 
-- Estações: derivadas de `data.data` sem nomes fixos; abas são construídas a partir de `stationKeys`.
-- Categorias: encontradas dinamicamente com `buildCategoryMap`, que define título e cor.
-- KPIs: listas são consolidadas dinamicamente, evitando duplicação por estação.
+## 🔄 Fluxos de Dados
 
-## Estilização e Gráficos
+### 1. Dashboard (`/dashboard`)
+- **Carregamento**: Busca payload inicial via `useApi`.
+- **Dinamismo**: As abas de estações e seções de categorias são geradas dinamicamente baseadas no JSON retornado.
+- **ViewModel**: `useDashboardViewModel` processa os dados brutos para separar KPIs por estação e categoria.
 
-- Tailwind CSS com `clsx` e `tailwind-merge` para compor classes.
-- Recharts com `ChartContainer`/`ChartTooltip` para tema e tooltip.
+### 2. Séries Temporais (`/time-series`)
+- **Lazy Loading**: O gráfico só busca dados quando o usuário seleciona uma estação/categoria.
+- **Otimização**: Usa `cache: 'no-store'` para garantir dados realtime, mas faz cache local de navegação.
+- **ViewModel**: `useTimeSeriesViewModel` gerencia o filtro de data, seleção de estação e busca de pontos.
 
-## Variáveis de Ambiente
+### 3. Relatórios (`/generate-reports`)
+- **Geração**: Permite selecionar KPIs e datas.
+- **Download**: O backend gera um Excel (blob) que é baixado pelo navegador.
+- **Arquitetura**: Separação entre estado do formulário (`useReportViewModel`) e ação de gerar (`useReportGenerate`).
 
-- `NEXT_PUBLIC_API_BASE_URL`: URL base do backend; fallback `http://localhost:8000`.
+### 4. Configurações (`/settings`)
+- **Gerenciamento**: Permite definir limites (máximos) para KPIs e ativar/desativar alarmes globais.
+- **Feedback**: Feedback otimista e notificações via `sonner` (Toast).
 
-## Scripts
+## 🛠️ Scripts Disponíveis
 
-- `dev`: inicia servidor de desenvolvimento.
-- `lint`: executa ESLint sobre o projeto.
+- `npm run dev`: Inicia servidor de desenvolvimento.
+- `npm run build`: Build de produção.
+- `npm run start`: Inicia servidor de produção.
+- `npm run lint`: Verifica erros de linting.
+- **`npm run check-hex`**: Verifica se existem cores hexadecimais hardcoded nos arquivos (essencial para White Label).
 
-## Convenções de Código
+## 🎨 Temas e Estilização
 
-- TypeScript com `strict` e paths `@/*`.
-- `HttpClient` injetável para facilitar testes/mudança de implementação.
-- `idToTag`: padroniza conversão de `id` para tag da API.
+A personalização é feita via variáveis CSS em `styles/globals.css`. Para mudar o tema (cores de um cliente específico), basta alterar os valores das variáveis HSL (`--primary`, `--secondary`, etc.), sem tocar no código React.
 
-## Tratamento de Erros
-
-- Hooks expõem `error` e `loading` e notificam com `toast` quando aplicável.
-- Páginas exibem `Loading` e `Error` com ações de retry.
-
-## Extensão
-
-- Novas estações/categorias: basta retornar no JSON da API; UI se adapta.
+---
+**Desenvolvido com foco em Manutenibilidade, Performance e Escalabilidade.**

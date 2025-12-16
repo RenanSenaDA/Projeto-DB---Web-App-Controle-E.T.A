@@ -8,26 +8,34 @@ type SeriesMap = Record<
   { ts: string; value: number; unit?: string | null }[]
 >;
 
-// Hook: busca séries temporais para uma lista de tags em um intervalo (minutos)
-// Parâmetros: tags (string[] com nomes de sensores), minutes (janela de tempo em minutos)
-// Retorno: { data: mapa tag->pontos, loading: boolean, error: string|null, refresh: () => Promise<void> }
-// Erros: falha de rede ou resposta HTTP não-OK geram mensagem via toast e preenchem 'error'
+/**
+ * Hook para buscar séries temporais históricas.
+ * Otimizado para evitar chamadas desnecessárias (só busca se houver tags).
+ *
+ * @param tags - Lista de tags (sensores) para buscar dados (ex: ["ete/nivel", "ete/ph"])
+ * @param minutes - Janela de tempo em minutos para trás (ex: 60 = última hora)
+ */
 export default function useSeries(tags: string[], minutes: number) {
   const [data, setData] = useState<SeriesMap>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Memoiza a chave de dependência para evitar loops de efeito se o array mudar de referência
   const tagsKey = useMemo(() => {
     if (!tags || !tags.length) return "";
     return [...tags].sort().join(",");
   }, [tags]);
 
-  // Executa a chamada de API por tags e minutos; evita requisição se não houver tags
+  /**
+   * Executa a busca na API /measurements/series
+   */
   const fetchSeries = useCallback(async () => {
     const tagList = tagsKey ? tagsKey.split(",") : [];
     if (!tagList.length) return;
+    
     setLoading(true);
     setError(null);
+    
     try {
       const svc = createMeasurementsService(defaultHttpClient);
       const json = await svc.getSeries(tagList, minutes);
@@ -41,6 +49,7 @@ export default function useSeries(tags: string[], minutes: number) {
     }
   }, [tagsKey, minutes]);
 
+  // Recarrega sempre que as tags ou o intervalo mudarem
   useEffect(() => {
     fetchSeries();
   }, [fetchSeries]);

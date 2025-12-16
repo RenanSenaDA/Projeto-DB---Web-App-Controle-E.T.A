@@ -1,9 +1,21 @@
+/**
+ * Propriedades do componente PageHeader.
+ */
 interface PageHeaderProps {
+  /** Título principal da página */
   title: string;
+  /** Subtítulo ou descrição curta */
   subtitle: string;
+  /** Elementos opcionais para renderizar à direita do cabeçalho (ex: botões de ação) */
   children?: React.ReactNode;
 }
 
+/**
+ * Cabeçalho padrão para páginas da aplicação.
+ * Exibe título, subtítulo e ações opcionais com layout responsivo.
+ * 
+ * @component
+ */
 export default function PageHeader({
   title,
   subtitle,

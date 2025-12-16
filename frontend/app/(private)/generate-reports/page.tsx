@@ -2,6 +2,10 @@ import { createDashboardService } from "@/services/dashboard";
 import { defaultHttpClient } from "@/services/http";
 import ReportsClient from "./reports-client";
 
+/**
+ * Página de Relatórios (Server Component).
+ * Busca dados iniciais para popular o seletor de KPIs.
+ */
 export default async function ReportsPage() {
   const svc = createDashboardService(defaultHttpClient);
   let initialData = null;

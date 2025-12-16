@@ -1,11 +1,23 @@
 import { cn } from "@/lib/utils";
 
+/**
+ * Propriedades do Rótulo de Seção.
+ */
 interface SectionLabelProps {
+  /** Texto do título */
   title: string;
+  /** Classe de cor para o indicador lateral (ex: "bg-blue-500") */
   color: string;
+  /** Classes adicionais para o título */
   titleClassName?: string;
 }
 
+/**
+ * Componente de rótulo para separar seções visuais.
+ * Exibe uma pequena barra colorida seguida do título.
+ * 
+ * @component
+ */
 export default function SectionLabel({ title, color, titleClassName = "" }: SectionLabelProps) {
   return (
     <div className="flex items-center gap-2 mb-4">

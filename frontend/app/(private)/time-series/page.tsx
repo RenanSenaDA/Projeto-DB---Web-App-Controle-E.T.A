@@ -2,6 +2,10 @@ import { createDashboardService } from "@/services/dashboard";
 import { defaultHttpClient } from "@/services/http";
 import TimeSeriesClient from "./time-series-client";
 
+/**
+ * Página de Séries Temporais (Server Component).
+ * Realiza o fetch inicial dos dados estruturais (estações/KPIs) no servidor.
+ */
 export default async function TimeSeriesPage() {
   const svc = createDashboardService(defaultHttpClient);
   let initialData = null;

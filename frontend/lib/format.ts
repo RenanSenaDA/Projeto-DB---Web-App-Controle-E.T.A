@@ -1,9 +1,36 @@
-export const formatValue = (val: string | number | null) => {
-  if (typeof val === "number") {
-    return val.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
-  }
-  return val;
-};
+/**
+ * Utilitários para formatação de dados e datas.
+ *
+ * Este arquivo contém funções auxiliares para formatar valores numéricos,
+ * datas relativas e outras representações visuais de dados.
+ */
+
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+/**
+ * Formata um valor numérico para exibição.
+ *
+ * @param value - O valor a ser formatado (number ou string numérica).
+ * @param decimals - O número de casas decimais (padrão: 2).
+ * @returns Uma string formatada ou "N/A" se o valor for inválido.
+ *
+ * @example
+ * formatValue(123.456) // "123.46"
+ * formatValue(null) // "N/A"
+ */
+export function formatValue(
+  value: number | string | undefined | null,
+  decimals = 2
+): string {
+  if (value === undefined || value === null || value === "") return "N/A";
+  const n = Number(value);
+  if (isNaN(n)) return "N/A";
+  return n.toLocaleString("pt-BR", {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+}
 
 export const formatCategory = (value: string | null | undefined) => {
   if (!value) return "";
@@ -25,18 +52,19 @@ export function generateTimeSeries(kpiId: string, base: number) {
   }));
 }
 
-export const formatRelativeTime = (ts: string | Date | null | undefined) => {
-  if (!ts) return "--";
-  const d = ts instanceof Date ? ts : new Date(ts as string);
-  if (isNaN(d.getTime())) return "--";
-  const diffMs = Date.now() - d.getTime();
-  if (diffMs < 0) return "agora";
-  const sec = Math.floor(diffMs / 1000);
-  if (sec < 60) return `há ${sec}s`;
-  const min = Math.floor(sec / 60);
-  if (min < 60) return `há ${min} min`;
-  const hr = Math.floor(min / 60);
-  if (hr < 24) return `há ${hr} h`;
-  const day = Math.floor(hr / 24);
-  return `há ${day} d`;
-};
+/**
+ * Retorna uma string representando o tempo decorrido desde a data fornecida até agora.
+ *
+ * @param date - A data passada (string ou Date).
+ * @returns String como "há 5 minutos", "há 2 dias", etc.
+ *
+ * @example
+ * formatRelativeTime(new Date(Date.now() - 60000)) // "há cerca de 1 minuto"
+ */
+export function formatRelativeTime(date: string | Date): string {
+  if (!date) return "";
+  return formatDistanceToNow(new Date(date), {
+    addSuffix: true,
+    locale: ptBR,
+  });
+}

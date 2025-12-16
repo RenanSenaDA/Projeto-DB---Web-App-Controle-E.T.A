@@ -1,15 +1,27 @@
 "use client";
 
 import type { KPIData } from "@/types/kpi";
-import { Badge } from "@/ui/badge";
 
+/**
+ * Propriedades do Filtro de Séries de KPI.
+ */
 interface KpiFilterProps {
+  /** Lista completa de KPIs disponíveis */
   allKpis: KPIData[];
+  /** Lista de IDs de KPIs selecionados para filtragem */
   selectedFilters: string[];
+  /** Função para alternar o filtro de uma KPI */
   toggleFilter: (kpiId: string) => void;
+  /** Função para limpar todos os filtros */
   clearFilters: () => void;
 }
 
+/**
+ * Componente para filtrar visualização de séries temporais.
+ * Exibe checkboxes para cada KPI disponível e botão de limpeza.
+ * 
+ * @component
+ */
 export default function KpiSeriesFilter({
   allKpis,
   selectedFilters,

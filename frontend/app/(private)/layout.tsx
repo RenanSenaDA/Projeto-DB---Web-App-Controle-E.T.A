@@ -1,6 +1,10 @@
 import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider, SidebarTrigger } from "@/ui/sidebar";
 
+/**
+ * Layout para rotas privadas (Dashboard, Configurações, etc.).
+ * Inclui a Sidebar de navegação e o SidebarProvider.
+ */
 export default function DashboardLayout({
   children,
 }: {

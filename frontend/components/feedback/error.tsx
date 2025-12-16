@@ -1,10 +1,21 @@
 import { AlertCircle } from "lucide-react";
 
+/**
+ * Propriedades do componente de Erro.
+ */
 interface ErrorProps {
+  /** Mensagem de erro a ser exibida */
   error: string | null;
+  /** Função para tentar carregar os dados novamente */
   fetchData: () => void;
 }
 
+/**
+ * Componente de feedback de erro.
+ * Exibe uma mensagem amigável e um botão para tentar novamente.
+ * 
+ * @component
+ */
 export default function Error({ error, fetchData }: ErrorProps) {
   return (
     <div className="flex h-screen items-center justify-center">

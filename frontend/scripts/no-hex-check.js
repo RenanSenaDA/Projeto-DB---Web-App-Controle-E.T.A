@@ -1,5 +1,12 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 const fs = require('fs');
 const path = require('path');
+
+/**
+ * Script de verificação de qualidade de código (Lint).
+ * Garante que não existem cores hexadecimais hardcoded fora do arquivo de estilos globais.
+ * Isso força o uso do sistema de design (Tailwind classes ou variáveis CSS).
+ */
 
 const ROOT = path.resolve(__dirname, '..');
 const EXCLUDES = new Set([
@@ -24,7 +31,7 @@ function walk(dir) {
       const content = fs.readFileSync(full, 'utf8');
       const matches = content.match(HEX_RE);
       if (matches) {
-        // ignore CSS variables definitions that are allowed inside globals.css (already excluded)
+        // Ignora definições de variáveis CSS que são permitidas dentro de globals.css (já excluído)
         for (const m of matches) {
           found.push({ file: full, match: m });
         }
@@ -44,4 +51,3 @@ if (found.length > 0) {
 } else {
   console.log('OK: Nenhum hex hardcoded encontrado fora de styles/globals.css');
 }
-

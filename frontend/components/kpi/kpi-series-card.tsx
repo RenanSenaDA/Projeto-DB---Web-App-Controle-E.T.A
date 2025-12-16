@@ -23,19 +23,32 @@ interface KPIData {
   updated_at: string;
 }
 
+/**
+ * Ponto de dado para o gráfico de série temporal.
+ */
 export interface TimeSeriesPoint {
+  /** Timestamp ISO string */
   ts: string;
+  /** Rótulo formatado para o eixo X */
   label: string;
+  /** Valor numérico da medição */
   value: number;
 }
 
-// Props: kpi (metadados), timeSeries (pontos para gráfico)
-// Erros: valores inválidos são tratados pelo gráfico (domínio auto)
+/**
+ * Propriedades do Card de Série Temporal.
+ */
 interface KpiSeriesCardProps {
+  /** Metadados da KPI (nome, unidade, etc.) */
   kpi: KPIData;
+  /** Array de pontos de dados históricos */
   timeSeries: TimeSeriesPoint[];
 }
 
+/**
+ * Tooltip customizado para o gráfico Recharts.
+ * Exibe valor, data e hora detalhados ao passar o mouse.
+ */
 function CustomTooltip({ active, payload }: TooltipProps<number, string>) {
   if (!active || !payload || !payload.length) return null;
   const item = payload[0]?.payload as {
@@ -69,8 +82,13 @@ function CustomTooltip({ active, payload }: TooltipProps<number, string>) {
   );
 }
 
-// Componente: exibe série temporal em linha para um KPI
-// Intenção: facilitar análise visual com tooltip e última atualização
+/**
+ * Componente Card de Gráfico de Série Temporal.
+ * Renderiza um gráfico de área ou linha dependendo da densidade de dados.
+ * Inclui gradientes, tooltips e informação de última atualização.
+ * 
+ * @component
+ */
 export default function KpiSeriesCard({ kpi, timeSeries }: KpiSeriesCardProps) {
   const pointCount = timeSeries.length;
   const isDense = pointCount >= 60;

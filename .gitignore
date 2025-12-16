@@ -27,3 +27,7 @@ db/
 
 # arquivos grandes opcionais (remova se quiser versionar CSVs)
 *.csv
+
+node_modules/
+
+.trae/

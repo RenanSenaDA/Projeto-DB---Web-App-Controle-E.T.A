@@ -12,6 +12,10 @@ import { Badge } from "@/ui/badge";
 
 type StyleTriplet = { border: string; text: string; bg: string }
 
+/**
+ * Mapa de cores para estilização dinâmica dos cards.
+ * Define borda, texto e fundo baseados em classes do Tailwind.
+ */
 const COLOR_MAP: Record<string, StyleTriplet> = {
   "bg-blue-600": { border: "border-l-blue-600", text: "text-blue-600", bg: "bg-blue-50" },
   "bg-emerald-600": { border: "border-l-emerald-600", text: "text-emerald-600", bg: "bg-emerald-50" },
@@ -27,6 +31,11 @@ const COLOR_MAP: Record<string, StyleTriplet> = {
   "bg-fuchsia-600": { border: "border-l-fuchsia-600", text: "text-fuchsia-600", bg: "bg-fuchsia-50" },
 }
 
+/**
+ * Deriva os estilos visuais com base na classe de cor fornecida.
+ * Se a cor não for encontrada, retorna um estilo padrão cinza.
+ * @param colorClass Classe de cor (ex: "bg-blue-600")
+ */
 function deriveStyles(colorClass?: string): StyleTriplet {
   if (!colorClass || !COLOR_MAP[colorClass]) {
     return { border: "border-l-slate-400", text: "text-slate-500", bg: "bg-slate-100" }
@@ -34,6 +43,13 @@ function deriveStyles(colorClass?: string): StyleTriplet {
   return COLOR_MAP[colorClass]
 }
 
+/**
+ * Componente Card de KPI.
+ * Exibe o valor atual, unidade, limite e status de uma métrica.
+ * Visualiza alertas se o valor exceder o limite configurado.
+ * 
+ * @component
+ */
 export default function KPICard({
   label,
   unit,

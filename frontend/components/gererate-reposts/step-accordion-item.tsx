@@ -17,20 +17,38 @@ import { cn } from "@/lib/utils";
 import type { KPIData } from "@/types/kpi";
 import { formatCategory } from "@/lib/format";
 
+/**
+ * Configuração visual para cada etapa/sistema do processo.
+ * Mapeia chaves de sistema para rótulos legíveis e ícones.
+ */
 const STEPS_CONFIG: Record<string, { label: string; icon: LucideIcon }> = {
   eta: { label: "ETA", icon: Factory },
   ultrafiltracao: { label: "Ultrafiltração", icon: Waves },
   carvao: { label: "Filtro de Carvão", icon: Filter },
 };
 
+/**
+ * Propriedades do Item de Acordeão para seleção de KPIs.
+ */
 interface StepAccordionItemProps {
+  /** Chave identificadora do sistema (ex: eta, ultrafiltracao) */
   systemKey: string;
+  /** Lista de KPIs disponíveis neste sistema */
   kpis: KPIData[];
+  /** IDs das KPIs atualmente selecionadas */
   selectedKpis: string[];
+  /** Callback para selecionar/desmarcar todas as KPIs do sistema */
   onToggleSystemAll: (kpis: KPIData[]) => void;
+  /** Callback para alternar a seleção de uma KPI específica */
   onToggleKpi: (id: string) => void;
 }
 
+/**
+ * Componente de item de acordeão para um grupo de KPIs.
+ * Exibe o status de seleção e permite marcar métricas individualmente ou em grupo.
+ * 
+ * @component
+ */
 export default function StepAccordionItem({
   systemKey,
   kpis,

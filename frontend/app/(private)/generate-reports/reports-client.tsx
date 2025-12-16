@@ -12,15 +12,23 @@ import SummaryCard from "@/components/gererate-reposts/summary-card";
 import DateRangePicker from "@/components/gererate-reposts/date-range-picker";
 import StepAccordionItem from "@/components/gererate-reposts/step-accordion-item";
 
-import useApi from "@/hooks/use-api";
-import useReportState from "@/hooks/report/use-report-state";
-import useReportGenerator from "@/hooks/report/use-report-generate";
+import useApi from "@/hooks/api/use-api";
+import useReportGenerator from "@/hooks/api/use-report-generate";
+import useReportViewModel from "@/hooks/view/use-report-view-model";
 import type { ApiResponse } from "@/types/kpi";
 
 interface ReportsClientProps {
   initialData?: ApiResponse | null;
 }
 
+/**
+ * Componente Cliente de Geração de Relatórios.
+ * Permite selecionar múltiplas KPIs e um intervalo de datas para gerar Excel.
+ * Coordena três hooks principais:
+ * - useApi: para dados das estações
+ * - useReportViewModel: para estado do formulário (seleção, datas)
+ * - useReportGenerator: para lógica de geração do arquivo Excel
+ */
 export default function ReportsClient({ initialData }: ReportsClientProps) {
   const { data, loading, error, fetchData } = useApi(initialData);
 
@@ -34,7 +42,7 @@ export default function ReportsClient({ initialData }: ReportsClientProps) {
     setStartDate,
     setEndDate,
     clearAll,
-  } = useReportState();
+  } = useReportViewModel();
   const { isGenerating, generateExcel } = useReportGenerator(data);
 
   if (loading) return <Loading />;

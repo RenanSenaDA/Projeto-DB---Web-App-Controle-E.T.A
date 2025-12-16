@@ -7,14 +7,28 @@ interface DateRange {
   end: string;
 }
 
+/**
+ * Propriedades do Card de Resumo.
+ */
 interface SummaryCardProps {
+  /** Quantidade de KPIs selecionadas */
   selectedCount: number;
+  /** Intervalo de datas selecionado */
   dateRange: DateRange;
+  /** Callback para iniciar a geração do relatório */
   onGenerate: () => void;
+  /** Indica se o relatório está sendo gerado (loading state) */
   isGenerating: boolean;
+  /** Desabilita o botão de geração (ex: erro ou carregando dados) */
   isDisabled: boolean;
 }
 
+/**
+ * Card fixo (sticky) que exibe o resumo da solicitação de relatório.
+ * Mostra contagem de métricas, datas e botão de download.
+ * 
+ * @component
+ */
 export default function SummaryCard({
   selectedCount,
   dateRange,

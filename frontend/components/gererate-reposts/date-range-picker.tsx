@@ -1,10 +1,23 @@
+/**
+ * Propriedades do Seletor de Intervalo de Datas.
+ */
 interface DateRangePickerProps {
+  /** Data inicial (string YYYY-MM-DD) */
   start: string;
+  /** Data final (string YYYY-MM-DD) */
   end: string;
+  /** Callback para alteração da data inicial */
   onStartChange: (val: string) => void;
+  /** Callback para alteração da data final */
   onEndChange: (val: string) => void;
 }
 
+/**
+ * Componente para seleção de período (data de início e fim).
+ * Renderiza dois inputs nativos de data com estilização consistente.
+ * 
+ * @component
+ */
 export default function DateRangePicker({
   start,
   end,

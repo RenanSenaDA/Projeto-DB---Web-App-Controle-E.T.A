@@ -4,11 +4,20 @@ import { getApiBase } from "@/lib/utils";
 
 type AuthUser = { id: number; email: string; name: string; role: string };
 
+/**
+ * Hook de Autenticação.
+ * Gerencia login, registro, logout e persistência de sessão (localStorage + Cookies).
+ * Sincroniza o estado do usuário entre abas via localStorage.
+ */
 export default function useAuth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
 
+  /**
+   * Realiza o login do usuário.
+   * Define o cookie de autenticação para middleware e salva estado local.
+   */
   const login = useCallback(async (email: string, password: string) => {
     setLoading(true);
     setError(null);
@@ -65,6 +74,10 @@ export default function useAuth() {
     }
   }, []);
 
+  /**
+   * Encerra a sessão do usuário.
+   * Remove cookies e limpa o estado.
+   */
   const logout = useCallback(() => {
     document.cookie = `auth_token=; path=/; max-age=0`;
     setUser(null);

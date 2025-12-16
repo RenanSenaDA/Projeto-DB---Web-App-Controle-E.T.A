@@ -1,9 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { Tabs, TabsContent } from "@/ui/tabs";
-import { Button } from "@/ui/button";
-import { SearchX } from "lucide-react";
 
 import Error from "@/components/feedback/error";
 import PageHeader from "@/components/header-page";
@@ -12,109 +9,51 @@ import TabsListStation from "@/components/tabs-list-station";
 import KPISection from "@/components/kpi/kpi-section";
 import KpiSeriesCard from "@/components/kpi/kpi-series-card";
 import KpiSeriesFilter from "@/components/kpi/kpi-serie-filter";
+import EmptyState from "@/components/feedback/empty-state";
 
-import useApi from "@/hooks/use-api";
-import useSeries from "@/hooks/use-series";
-import { buildCategoryMap, idToTag } from "@/lib/utils";
 import type { KPIData, ApiResponse } from "@/types/kpi";
-
-const TIME_RANGES = [
-  { label: "Últimos 15 min", value: 15 },
-  { label: "Últimas 1 h", value: 60 },
-  { label: "Últimas 6 h", value: 360 },
-  { label: "Últimas 12 h", value: 720 },
-  { label: "Últimas 24 h", value: 1440 },
-  { label: "Últimos 7 dias", value: 10080 },
-  { label: "Últimos 30 dias", value: 43200 },
-];
+import {
+  useTimeSeriesViewModel,
+  TIME_RANGES,
+} from "@/hooks/view/use-time-series-view-model";
 
 interface TimeSeriesClientProps {
   initialData?: ApiResponse | null;
 }
 
+/**
+ * Componente Cliente de Séries Temporais.
+ * Permite visualizar gráficos históricos de KPIs, filtrar por métrica e intervalo de tempo.
+ * Gerencia a complexidade de UI através do useTimeSeriesViewModel.
+ */
 export default function TimeSeriesClient({
   initialData,
 }: TimeSeriesClientProps) {
-  // Página: séries temporais por estação e categoria
-  // Objetivo: construir tags dinâmicas por estação e filtros para chamar a API
-  const { data, loading, error, fetchData } = useApi(initialData);
-
-  const stationKeys = useMemo(() => {
-    return Object.keys(data?.data ?? {}).filter(
-      (key) => (data?.data?.[key]?.kpis?.length ?? 0) > 0
-    );
-  }, [data]);
-
-  const stationsList = useMemo(() => {
-    return stationKeys.map((key) => ({
-      key,
-      label: key.toUpperCase(),
-    }));
-  }, [stationKeys]);
-
-  const [activeStation, setActiveStation] = useState<string>("");
-  const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
-  const [timeRange, setTimeRange] = useState<number>(10080);
-  const selectedStation = useMemo(
-    () => activeStation || stationKeys[0] || "",
-    [activeStation, stationKeys]
-  );
-  // Define tags ativas: se houver filtros, usa apenas IDs filtrados desta estação
-  const activeTags = useMemo(() => {
-    const stationKpis = data?.data?.[selectedStation]?.kpis ?? [];
-    const stationIds = new Set(stationKpis.map((k) => k.id));
-    const ids =
-      selectedFilters.length > 0
-        ? selectedFilters.filter((id) => stationIds.has(id))
-        : stationKpis.map((k) => k.id);
-    return ids.map((id) => idToTag(id)).sort();
-  }, [selectedStation, data, selectedFilters]);
   const {
-    data: seriesMap,
-    loading: seriesLoading,
-    error: seriesError,
-    refresh,
-  } = useSeries(activeTags, timeRange);
+    loading,
+    error,
+    fetchData,
+    refreshSeries,
+    stationKeys,
+    stationsList,
+    selectedStation,
+    setActiveStation,
+    timeRange,
+    setTimeRange,
+    selectedFilters,
+    toggleFilter,
+    clearFilters,
+    noSeries,
+    allKpis,
+    categoryMap,
+    data,
+    getSeriesForKpi,
+  } = useTimeSeriesViewModel(initialData);
 
-  const categoryMap = buildCategoryMap(data);
+  if (loading) return <Loading />;
+  if (error)
+    return <Error error={error} fetchData={fetchData || refreshSeries} />;
 
-  const noSeries = Object.keys(seriesMap || {}).length === 0;
-
-  const allKpis = useMemo(() => {
-    const stations = Object.values(data?.data ?? {});
-    const merged = stations.flatMap((s) => s.kpis || []);
-    const uniq = new Map<string, (typeof merged)[number]>();
-    merged.forEach((k) => uniq.set(k.id, k));
-    return Array.from(uniq.values());
-  }, [data]);
-
-  if (loading || seriesLoading) return <Loading />;
-  if (error) return <Error error={error} fetchData={fetchData} />;
-  if (seriesError) return <Error error={seriesError} fetchData={refresh} />;
-
-  // Alterna seleção de um KPI no filtro; reduz chamadas quando filtrado
-  const toggleFilter = (kpiId: string) => {
-    setSelectedFilters((prev) =>
-      prev.includes(kpiId)
-        ? prev.filter((id) => id !== kpiId)
-        : [...prev, kpiId]
-    );
-  };
-
-  // Transforma pontos brutos em estrutura para o gráfico (rótulo HH:MM)
-  const buildSeries = (tag: string) => {
-    const points = seriesMap[tag] || [];
-    return points.map((p) => ({
-      ts: p.ts,
-      label: new Date(p.ts).toLocaleTimeString("pt-BR", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      value: p.value,
-    }));
-  };
-
-  // Renderiza cartões de série para a lista de KPIs da categoria
   const renderSeries = (kpis: KPIData[]) => {
     const filtered = selectedFilters.length
       ? kpis.filter((k) => selectedFilters.includes(k.id))
@@ -124,7 +63,7 @@ export default function TimeSeriesClient({
       <KpiSeriesCard
         key={kpi.id}
         kpi={{ ...kpi, value: kpi.value ?? undefined, unit: kpi.unit ?? "" }}
-        timeSeries={buildSeries(idToTag(kpi.id))}
+        timeSeries={getSeriesForKpi(kpi.id)}
       />
     ));
   };
@@ -153,68 +92,55 @@ export default function TimeSeriesClient({
         </div>
       </PageHeader>
 
-      {noSeries && (
-        <div className="flex flex-col items-center justify-center py-12 text-center rounded-lg border border-dashed border-slate-300 bg-slate-50/50">
-          <div className="bg-slate-100 p-3 rounded-full mb-4">
-            <SearchX className="h-8 w-8 text-slate-400" />
-          </div>
-          <h3 className="text-lg font-medium text-slate-900 mb-1">
-            Nenhum dado encontrado
-          </h3>
-          <p className="text-sm text-slate-500 max-w-sm mx-auto mb-4">
-            Não encontramos leituras para o período selecionado. Tente aumentar
-            o intervalo de tempo.
-          </p>
-          {selectedFilters.length > 0 && (
-            <Button
-              variant="outline"
-              onClick={() => setSelectedFilters([])}
-              className="text-slate-600 border-slate-300 hover:bg-white"
-            >
-              Limpar Filtros
-            </Button>
-          )}
-        </div>
+      {noSeries ? (
+        <EmptyState
+          title="Nenhum dado encontrado"
+          description="Não encontramos leituras para o período selecionado. Tente aumentar o intervalo de tempo ou limpar os filtros."
+          actionLabel={selectedFilters.length > 0 ? "Limpar Filtros" : undefined}
+          onAction={selectedFilters.length > 0 ? clearFilters : undefined}
+        />
+      ) : (
+        <>
+          <KpiSeriesFilter
+            allKpis={allKpis}
+            selectedFilters={selectedFilters}
+            toggleFilter={toggleFilter}
+            clearFilters={clearFilters}
+          />
+
+          <Tabs
+            value={selectedStation}
+            className="w-full mb-4"
+            onValueChange={(value) => setActiveStation(value as string)}
+          >
+            <TabsListStation stations={stationsList} />
+
+            {stationKeys.map((key) => (
+              <TabsContent key={key} value={key}>
+                {Object.entries(categoryMap).map(([category, config]) => {
+                  const stationKpis = data?.data?.[key]?.kpis ?? [];
+                  const sectionItems = stationKpis.filter(
+                    (k) => k.category === category
+                  );
+                  if (!sectionItems.length) return null;
+
+                  return (
+                    <KPISection
+                      key={category}
+                      color={config.color}
+                      title_section={config.title}
+                    >
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                        {renderSeries(sectionItems)}
+                      </div>
+                    </KPISection>
+                  );
+                })}
+              </TabsContent>
+            ))}
+          </Tabs>
+        </>
       )}
-
-      <KpiSeriesFilter
-        allKpis={allKpis}
-        selectedFilters={selectedFilters}
-        toggleFilter={toggleFilter}
-        clearFilters={() => setSelectedFilters([])}
-      />
-
-      <Tabs
-        value={selectedStation}
-        className="w-full mb-4"
-        onValueChange={(value) => setActiveStation(value as string)}
-      >
-        <TabsListStation stations={stationsList} />
-
-        {stationKeys.map((key) => (
-          <TabsContent key={key} value={key}>
-            {Object.entries(categoryMap).map(([category, config]) => {
-              const stationKpis = data?.data?.[key]?.kpis ?? [];
-              const sectionItems = stationKpis.filter(
-                (k) => k.category === category
-              );
-              if (!sectionItems.length) return null;
-
-              return (
-                <KPISection
-                  key={category}
-                  color={config.color}
-                  title_section={config.title}
-                >
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    {renderSeries(sectionItems)}
-                  </div>
-                </KPISection>
-              );
-            })}
-          </TabsContent>
-        ))}
-      </Tabs>
     </div>
   );
 }

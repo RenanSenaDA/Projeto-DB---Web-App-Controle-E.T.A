@@ -8,8 +8,13 @@ import { useRouter } from "next/navigation";
 import { Input } from "@/ui/input";
 import { Button } from "@/ui/button";
 import { Card, CardHeader, CardContent, CardTitle } from "@/ui/card";
-import useAuth from "@/hooks/use-auth";
+import useAuth from "@/hooks/auth/use-auth";
 
+/**
+ * Página de Login.
+ * Permite ao usuário autenticar-se no sistema usando e-mail e senha.
+ * Utiliza o hook useAuth para gerenciar a requisição de login.
+ */
 export default function LoginPage() {
   const router = useRouter();
   const { login, loading } = useAuth();
@@ -17,11 +22,15 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
 
+  // Validação simples de formato de e-mail
   const isValidEmail = useMemo(() => {
     if (!email) return false;
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }, [email]);
 
+  /**
+   * Manipula o envio do formulário de login.
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !senha) return;
@@ -36,7 +45,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-muted p-4">
       <Card className="w-full max-w-sm shadow-md">
         <CardHeader className="flex flex-col items-center gap-3">
           <Image
@@ -77,7 +86,7 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <p className="text-sm text-center text-gray-600 mt-4">
+          <p className="text-sm text-center text-muted-foreground mt-4">
             Não tem conta?{" "}
             <Link
               href="/register"

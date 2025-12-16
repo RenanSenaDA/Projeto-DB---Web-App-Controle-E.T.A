@@ -6,7 +6,12 @@ interface DateRange {
   end: string;
 }
 
-export default function useReportState() {
+/**
+ * ViewModel para a geração de Relatórios.
+ * Gerencia o estado do formulário de seleção (KPIs, datas, expansão de acordeão).
+ * Puramente gerenciamento de estado local (UI), sem chamadas de API diretas.
+ */
+export default function useReportViewModel() {
   const [selectedKpis, setSelectedKpis] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<DateRange>({
     start: new Date().toISOString().split("T")[0],
@@ -14,6 +19,7 @@ export default function useReportState() {
   });
   const [expandedSystems, setExpandedSystems] = useState<string[]>([]);
 
+  // Alterna seleção de uma única KPI
   const toggleKpi = useCallback((kpiId: string) => {
     setSelectedKpis((prev) =>
       prev.includes(kpiId)
@@ -22,6 +28,11 @@ export default function useReportState() {
     );
   }, []);
 
+  /**
+   * Alterna seleção de TODAS as KPIs de um sistema/estação.
+   * - Se todas já estiverem selecionadas -> Remove todas.
+   * - Caso contrário -> Adiciona as que faltam.
+   */
   const toggleSystemAll = useCallback((systemKpis: KPIData[]) => {
     const allIds = systemKpis.map((k) => k.id);
     setSelectedKpis((prev) => {

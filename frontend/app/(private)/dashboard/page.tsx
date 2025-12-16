@@ -2,7 +2,11 @@ import { createDashboardService } from "@/services/dashboard";
 import { defaultHttpClient } from "@/services/http";
 import DashboardClient from "./dashboard-client";
 
-// Server Component: Realiza o fetch inicial no servidor
+/**
+ * Página do Dashboard (Server Component).
+ * Realiza o fetch inicial dos dados no servidor para melhor performance (SSR).
+ * Se o fetch falhar, a página carrega mesmo assim e o cliente tenta buscar novamente.
+ */
 export default async function DashboardPage() {
   const svc = createDashboardService(defaultHttpClient);
   let initialData = null;
