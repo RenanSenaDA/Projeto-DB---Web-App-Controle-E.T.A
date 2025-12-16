@@ -70,7 +70,7 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              className="w-full bg-[#00283F]"
+              className="w-full bg-secondary"
               disabled={loading || !isValidEmail}
             >
               Entrar
@@ -81,7 +81,7 @@ export default function LoginPage() {
             Não tem conta?{" "}
             <Link
               href="/register"
-              className="text-[#00B4F0] underline hover:opacity-80"
+              className="text-primary underline hover:opacity-80"
             >
               Criar conta
             </Link>

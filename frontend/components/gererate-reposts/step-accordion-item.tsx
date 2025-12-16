@@ -57,8 +57,8 @@ export default function StepAccordionItem({
     >
       <AccordionTrigger className="flex px-4 py-4 hover:bg-slate-50/50">
         <div className="flex items-center gap-3 text-left">
-          <div className="p-2 rounded-lg bg-[#00B4F0]/10 border border-[#00B4F0]">
-            <Icon className="h-5 w-5 text-[#00B4F0]" />
+          <div className="p-2 rounded-lg bg-primary/10 border border-primary">
+            <Icon className="h-5 w-5 text-primary" />
           </div>
           <div>
             <h3 className="font-semibold text-slate-800 text-sm sm:text-base">
@@ -77,7 +77,7 @@ export default function StepAccordionItem({
             e.stopPropagation();
             onToggleSystemAll(kpis);
           }}
-          className="text-xs font-medium text-[#00283F] hover:underline px-2 mr-2 pt-4 hidden sm:block"
+          className="text-xs font-medium text-secondary hover:underline px-2 mr-2 pt-4 hidden sm:block"
         >
           {allSelected ? "Desmarcar todos" : "Selecionar todos"}
         </button>
@@ -92,7 +92,7 @@ export default function StepAccordionItem({
                 className={cn(
                   "flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all hover:bg-slate-50",
                   isSelected
-                    ? "border-[#00283F] bg-slate-50/50"
+                    ? "border-secondary bg-slate-50/50"
                     : "border-slate-200"
                 )}
               >
@@ -100,7 +100,7 @@ export default function StepAccordionItem({
                   className={cn(
                     "h-5 w-5 rounded border flex items-center justify-center",
                     isSelected
-                      ? "bg-[#00283F] border-[#00283F]"
+                      ? "bg-secondary border-secondary"
                       : "bg-white border-slate-300"
                   )}
                 >
@@ -113,7 +113,7 @@ export default function StepAccordionItem({
                   <span
                     className={cn(
                       "text-sm font-medium truncate",
-                      isSelected ? "text-blue-900" : "text-slate-600"
+                      isSelected ? "text-secondary" : "text-slate-600"
                     )}
                   >
                     {kpi.label}

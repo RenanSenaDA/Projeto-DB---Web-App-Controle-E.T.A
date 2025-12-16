@@ -3,6 +3,8 @@
 import {
   LineChart,
   Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -70,6 +72,10 @@ function CustomTooltip({ active, payload }: TooltipProps<number, string>) {
 // Componente: exibe série temporal em linha para um KPI
 // Intenção: facilitar análise visual com tooltip e última atualização
 export default function KpiSeriesCard({ kpi, timeSeries }: KpiSeriesCardProps) {
+  const pointCount = timeSeries.length;
+  const isDense = pointCount >= 60;
+  const isMedium = pointCount >= 20 && pointCount < 60;
+  const gradId = `grad-${kpi.id}`;
   return (
     <Card className="w-full border rounded-xl shadow-sm hover:shadow-md transition-all">
       <CardHeader>
@@ -79,40 +85,53 @@ export default function KpiSeriesCard({ kpi, timeSeries }: KpiSeriesCardProps) {
       </CardHeader>
       <CardContent>
         <ChartContainer
-          config={{ value: { label: kpi.label, color: "#00B4F0" } }}
+          config={{ value: { label: kpi.label, color: "var(--color-primary)" } }}
           className="h-[300px] w-full"
         >
-          <LineChart width={335} height={300} data={timeSeries}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="label" tick={{ fontSize: 12 }} stroke="#888" />
-            <YAxis
-              tick={{ fontSize: 12 }}
-              stroke="#888"
-              domain={["auto", "auto"]}
-            />
-            <ChartTooltip
-              cursor={{ stroke: "#999", strokeDasharray: "5 5" }}
-              content={<CustomTooltip />}
-            />
-            <Line
-              type="monotone"
-              dataKey="value"
-              stroke="#00B4F0"
-              strokeWidth={2}
-              dot={({ cx, cy, payload }) => (
-                <circle
-                  key={`${kpi.id}-${payload.ts}`}
-                  cx={cx}
-                  cy={cy}
-                  r={5}
-                  stroke="white"
-                  strokeWidth={2}
-                  fill="#00B4F0"
-                  className="transition-all hover:scale-125"
-                />
-              )}
-            />
-          </LineChart>
+          {isDense ? (
+            <AreaChart width={335} height={300} data={timeSeries}>
+              <defs>
+                <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--color-primary)" stopOpacity={0.25} />
+                  <stop offset="100%" stopColor="var(--color-primary)" stopOpacity={0.05} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="2 2" />
+              <XAxis dataKey="label" tick={{ fontSize: 12 }} stroke="var(--color-border)" />
+              <YAxis tick={{ fontSize: 12 }} stroke="var(--color-border)" domain={["auto", "auto"]} />
+              <ChartTooltip cursor={{ stroke: "var(--color-border)", strokeDasharray: "4 4" }} content={<CustomTooltip />} />
+              <Area
+                type="natural"
+                dataKey="value"
+                stroke="var(--color-primary)"
+                strokeWidth={1.8}
+                fill={`url(#${gradId})`}
+                dot={false}
+                activeDot={{ r: 3 }}
+              />
+            </AreaChart>
+          ) : (
+            <LineChart width={335} height={300} data={timeSeries}>
+              <CartesianGrid strokeDasharray="2 2" />
+              <XAxis dataKey="label" tick={{ fontSize: 12 }} stroke="var(--color-border)" />
+              <YAxis tick={{ fontSize: 12 }} stroke="var(--color-border)" domain={["auto", "auto"]} />
+              <ChartTooltip cursor={{ stroke: "var(--color-border)", strokeDasharray: "4 4" }} content={<CustomTooltip />} />
+              <Line
+                type="natural"
+                dataKey="value"
+                stroke="var(--color-primary)"
+                strokeWidth={1.8}
+                dot={
+                  isMedium
+                    ? false
+                    : ({ cx, cy }) => (
+                        <circle cx={cx} cy={cy} r={3} fill="var(--color-primary)" />
+                      )
+                }
+                activeDot={{ r: 4 }}
+              />
+            </LineChart>
+          )}
         </ChartContainer>
         <div className="pt-3 border-t border-slate-100 flex items-center justify-start gap-2">
           <p className="text-xs text-slate-400 tabular-nums">

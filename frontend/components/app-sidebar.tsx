@@ -65,7 +65,7 @@ export function AppSidebar() {
             height={40}
             priority
           />
-          <h1 className="mt-2 text-[10px] font-bold tracking-widest text-[#00283F] uppercase opacity-70">
+          <h1 className="mt-2 text-[10px] font-bold tracking-widest text-secondary-foreground uppercase opacity-70">
             Sistema de Monitoramento
           </h1>
         </div>
@@ -88,15 +88,15 @@ export function AppSidebar() {
                         transition-all duration-200 ease-in-out h-10 mb-1
                         ${
                           isActive
-                            ? "bg-[#00283F] text-[#00B4F0] hover:bg-[#00283F] hover:text-[#00B4F0] font-medium"
-                            : "text-slate-500 hover:bg-[#00B4F0]/10 hover:text-[#00283F]"
+                            ? "bg-secondary text-primary hover:bg-secondary hover:text-primary font-medium"
+                            : "text-slate-500 hover:bg-primary/10 hover:text-secondary"
                         }
                       `}
                     >
                       <Link href={item.url} prefetch>
                         <item.icon
                           className={
-                            isActive ? "text-[#00B4F0]" : "text-slate-400"
+                            isActive ? "text-primary" : "text-slate-400"
                           }
                         />
                         <span>{item.title}</span>

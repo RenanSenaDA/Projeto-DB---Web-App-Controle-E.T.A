@@ -27,7 +27,7 @@ export default function TabsListStation({
         <TabsTrigger
           key={key}
           value={key}
-          className={`gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-[#00B4F0] transition-all ${triggerClassName}`}
+          className={`gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary transition-all ${triggerClassName}`}
         >
           {label}
         </TabsTrigger>

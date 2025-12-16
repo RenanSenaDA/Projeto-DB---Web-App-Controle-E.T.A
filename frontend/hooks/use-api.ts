@@ -7,13 +7,15 @@ import { defaultHttpClient } from "@/services/http";
 // Hook: carrega payload do dashboard e expõe utilitários
 // Retorno: { data, loading, error, fetchData, getKPIs }
 // Erros: seta 'error' e exibe toast quando falha conexão
-export default function useApi() {
-  const [data, setData] = useState<ApiResponse | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+export default function useApi(initialData?: ApiResponse | null) {
+  const [data, setData] = useState<ApiResponse | null>(initialData || null);
+  const [loading, setLoading] = useState<boolean>(!initialData);
   const [error, setError] = useState<string | null>(null);
 
   // Busca dados do dashboard; silent evita estado de loading na UI
   const fetchData = useCallback(async (opts?: { silent?: boolean }) => {
+    // Se já temos dados e é a primeira renderização (não silent), não mostramos loading
+    // Mas se for refresh manual, mostramos
     setLoading(opts?.silent ? false : true);
     setError(null);
     try {

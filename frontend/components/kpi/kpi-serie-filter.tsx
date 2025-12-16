@@ -19,14 +19,11 @@ export default function KpiSeriesFilter({
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center gap-2">
-        <h4 className="text-sm font-semibold text-[#00283F]">Filtro de KPIs</h4>
+        <h4 className="text-sm font-semibold text-secondary-foreground">Filtro de KPIs</h4>
         <div className="flex items-center gap-2">
-          <Badge variant="secondary">
-            Selecionados: {selectedFilters.length}
-          </Badge>
           {selectedFilters.length > 0 && (
             <button
-              className="px-3 py-1 text-sm font-medium text-white bg-[#00B4F0] rounded hover:bg-[#00283F] transition"
+              className="px-3 py-1 text-sm font-medium text-white bg-primary rounded hover:bg-secondary transition"
               onClick={clearFilters}
             >
               Limpar
@@ -41,13 +38,13 @@ export default function KpiSeriesFilter({
             key={kpi.id}
             className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer transition ${
               selectedFilters.includes(kpi.id)
-                ? "bg-[#00B4F0]/10 border border-[#00B4F0]"
+                ? "bg-primary/10 border border-primary"
                 : "hover:bg-slate-100"
             }`}
           >
             <input
               type="checkbox"
-              className="text-[#00B4F0]"
+              className="text-primary"
               checked={selectedFilters.includes(kpi.id)}
               onChange={() => toggleFilter(kpi.id)}
             />

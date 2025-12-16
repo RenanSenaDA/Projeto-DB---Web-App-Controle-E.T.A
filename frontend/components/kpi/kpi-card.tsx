@@ -12,14 +12,26 @@ import { Badge } from "@/ui/badge";
 
 type StyleTriplet = { border: string; text: string; bg: string }
 
+const COLOR_MAP: Record<string, StyleTriplet> = {
+  "bg-blue-600": { border: "border-l-blue-600", text: "text-blue-600", bg: "bg-blue-50" },
+  "bg-emerald-600": { border: "border-l-emerald-600", text: "text-emerald-600", bg: "bg-emerald-50" },
+  "bg-amber-500": { border: "border-l-amber-500", text: "text-amber-500", bg: "bg-amber-50" },
+  "bg-red-500": { border: "border-l-red-500", text: "text-red-500", bg: "bg-red-50" },
+  "bg-violet-600": { border: "border-l-violet-600", text: "text-violet-600", bg: "bg-violet-50" },
+  "bg-indigo-600": { border: "border-l-indigo-600", text: "text-indigo-600", bg: "bg-indigo-50" },
+  "bg-teal-600": { border: "border-l-teal-600", text: "text-teal-600", bg: "bg-teal-50" },
+  "bg-cyan-600": { border: "border-l-cyan-600", text: "text-cyan-600", bg: "bg-cyan-50" },
+  "bg-rose-500": { border: "border-l-rose-500", text: "text-rose-500", bg: "bg-rose-50" },
+  "bg-orange-500": { border: "border-l-orange-500", text: "text-orange-500", bg: "bg-orange-50" },
+  "bg-lime-600": { border: "border-l-lime-600", text: "text-lime-600", bg: "bg-lime-50" },
+  "bg-fuchsia-600": { border: "border-l-fuchsia-600", text: "text-fuchsia-600", bg: "bg-fuchsia-50" },
+}
+
 function deriveStyles(colorClass?: string): StyleTriplet {
-  if (!colorClass || !colorClass.startsWith("bg-")) {
+  if (!colorClass || !COLOR_MAP[colorClass]) {
     return { border: "border-l-slate-400", text: "text-slate-500", bg: "bg-slate-100" }
   }
-  const border = colorClass.replace("bg-", "border-l-")
-  const text = colorClass.replace("bg-", "text-")
-  const bg = colorClass.replace(/(600|500|400|300|200|100)/, "50")
-  return { border, text, bg }
+  return COLOR_MAP[colorClass]
 }
 
 export default function KPICard({
@@ -54,7 +66,7 @@ export default function KPICard({
 
         {aboveLimit && (
           <CardAction className="flex flex-col items-end gap-1">
-            <Badge variant="destructive">Acima do limite</Badge>
+            <Badge className="text-xs text-destructive bg-destructive/10 border border-destructive">Acima do limite</Badge>
           </CardAction>
         )}
       </CardHeader>
@@ -67,10 +79,10 @@ export default function KPICard({
               Atual
             </span>
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-bold text-[#00283F] tracking-tight">
+              <span className="text-2xl font-bold text-slate-900 tracking-tight">
                 {formatValue(value)}
               </span>
-              <span className="text-xs font-medium text-[#00283F]">{unit}</span>
+              <span className="text-xs font-medium text-slate-900">{unit}</span>
             </div>
           </div>
 

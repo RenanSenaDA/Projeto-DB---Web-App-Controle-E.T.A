@@ -31,19 +31,19 @@ export default function SummaryCard({
       <div className="space-y-4 text-sm">
         <div className="flex justify-between items-center">
           <span className="text-slate-500">Métricas Selecionadas:</span>
-          <span className="font-bold text-[#00283F] bg-[#00283F]/10 px-2 py-0.5 rounded-full">
+          <span className="font-bold text-secondary-foreground bg-secondary/10 px-2 py-0.5 rounded-full">
             {selectedCount}
           </span>
         </div>
         <div className="flex justify-between items-center">
           <span className="text-slate-500">Data Início:</span>
-          <span className="font-medium text-[#00283F]">
+          <span className="font-medium text-secondary-foreground">
             {new Date(dateRange.start).toLocaleDateString("pt-BR")}
           </span>
         </div>
         <div className="flex justify-between items-center">
           <span className="text-slate-500">Data Fim:</span>
-          <span className="font-medium text-[#00283F]">
+          <span className="font-medium text-secondary-foreground">
             {new Date(dateRange.end).toLocaleDateString("pt-BR")}
           </span>
         </div>
@@ -55,7 +55,7 @@ export default function SummaryCard({
         className={cn(
           "w-full mt-8 py-3 px-4 rounded-lg flex items-center justify-center gap-2 font-semibold transition-all shadow-md",
           !isDisabled && selectedCount > 0 && !isGenerating
-            ? "bg-[#00283F] hover:bg-[#00283F]/90 text-white"
+            ? "bg-secondary hover:bg-secondary/90 text-white"
             : "bg-slate-100 text-slate-400 cursor-not-allowed"
         )}
       >

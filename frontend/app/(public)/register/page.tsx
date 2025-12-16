@@ -97,7 +97,7 @@ export default function RegisterPage() {
 
             <Button
               type="submit"
-              className="w-full bg-[#00283F]"
+              className="w-full bg-secondary"
               disabled={loading || !isValidEmail || !isStrongPassword}
             >
               Registrar
@@ -108,7 +108,7 @@ export default function RegisterPage() {
             Já tem conta?{" "}
             <Link
               href="/login"
-              className="text-[#00B4F0] underline hover:opacity-80"
+              className="text-primary underline hover:opacity-80"
             >
               Entrar
             </Link>
