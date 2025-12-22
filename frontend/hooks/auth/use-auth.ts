@@ -1,110 +1,93 @@
-import { useState, useCallback, useEffect } from "react";
+"use client";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { getApiBase } from "@/lib/utils";
+import { defaultHttpClient } from "@/services/http";
 
-type AuthUser = { id: number; email: string; name: string; role: string };
+type AuthUser = {
+  id: number;
+  email: string;
+  name?: string;
+  role?: string;
+};
 
-/**
- * Hook de Autenticação.
- * Gerencia login, registro, logout e persistência de sessão (localStorage + Cookies).
- * Sincroniza o estado do usuário entre abas via localStorage.
- */
-export default function useAuth() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+type LoginResponse = {
+  token: string;
+  user: AuthUser;
+};
+
+export function useAuth() {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
-  /**
-   * Realiza o login do usuário.
-   * Define o cookie de autenticação para middleware e salva estado local.
-   */
-  const login = useCallback(async (email: string, password: string) => {
-    setLoading(true);
-    setError(null);
+  const loadUserFromStorage = useCallback(() => {
     try {
-      const res = await fetch(`${getApiBase()}/auth/login`, {
+      const raw = window.localStorage.getItem("auth_user");
+      if (!raw) return null;
+      return JSON.parse(raw) as AuthUser;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  useEffect(() => {
+    const u = loadUserFromStorage();
+    setUser(u);
+    setLoading(false);
+  }, [loadUserFromStorage]);
+
+  const login = useCallback(async (email: string, password: string) => {
+    try {
+      const res = await defaultHttpClient.fetch("/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      if (!res.ok) {
-        const t = await res.text();
-        throw new Error(t || `HTTP ${res.status}`);
-      }
-      const json = await res.json();
-      const token: string = json.token;
-      const u: AuthUser = json.user;
-      // cookie simples para o middleware
-      document.cookie = `auth_token=${token}; path=/; max-age=${60 * 60 * 8}`; // 8h
-      setUser(u);
-      toast.success("Login realizado com sucesso");
-      return u;
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Falha no login";
-      setError(msg);
-      toast.error(msg);
-      throw e;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
-  const register = useCallback(async (name: string, email: string, password: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`${getApiBase()}/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
-      });
       if (!res.ok) {
-        const t = await res.text();
-        throw new Error(t || `HTTP ${res.status}`);
+        const msg = await res.text().catch(() => "");
+        throw new Error(msg || "Falha no login");
       }
-      toast.success("Cadastro realizado com sucesso");
+
+      const json = (await res.json()) as LoginResponse;
+
+      // 1) usuário
+      window.localStorage.setItem("auth_user", JSON.stringify(json.user));
+      setUser(json.user);
+
+      // 2) token — CRÍTICO: o http.ts lê do localStorage
+      window.localStorage.setItem("token", json.token);
+      // opcional: compatibilidade com outras chaves
+      window.localStorage.setItem("access_token", json.token);
+
+      // 3) cookie opcional (se você já usava)
+      document.cookie = `auth_token=${json.token}; path=/; max-age=${60 * 60 * 8};`;
+
+      toast.success("Login realizado");
       return true;
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Falha no cadastro";
-      setError(msg);
+      const msg = e instanceof Error ? e.message : "Falha no login";
       toast.error(msg);
-      throw e;
-    } finally {
-      setLoading(false);
+      return false;
     }
   }, []);
 
-  /**
-   * Encerra a sessão do usuário.
-   * Remove cookies e limpa o estado.
-   */
   const logout = useCallback(() => {
-    document.cookie = `auth_token=; path=/; max-age=0`;
+    window.localStorage.removeItem("auth_user");
+    window.localStorage.removeItem("token");
+    window.localStorage.removeItem("access_token");
+    window.localStorage.removeItem("jwt");
+
+    // remove cookie (se existir)
+    document.cookie = "auth_token=; path=/; max-age=0;";
+
     setUser(null);
     toast.success("Sessão encerrada");
   }, []);
 
-  useEffect(() => {
-    try {
-      const raw = typeof window !== "undefined" ? window.localStorage.getItem("auth_user") : null;
-      if (raw) {
-        const parsed = JSON.parse(raw) as AuthUser;
-        if (parsed && parsed.email) {
-          setUser(parsed);
-        }
-      }
-    } catch {}
-  }, []);
-
-  useEffect(() => {
-    try {
-      if (user) {
-        window.localStorage.setItem("auth_user", JSON.stringify(user));
-      } else {
-        window.localStorage.removeItem("auth_user");
-      }
-    } catch {}
+  const isAdmin = useMemo(() => {
+    return (user?.role || "").toLowerCase() === "admin";
   }, [user]);
 
-  return { loading, error, user, login, register, logout };
+  return { user, isAdmin, loading, login, logout };
 }

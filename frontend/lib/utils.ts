@@ -24,10 +24,33 @@ export function cn(...inputs: ClassValue[]) {
 
 /**
  * Retorna a URL base da API.
- * Prioriza variável de ambiente, com fallback para localhost.
+ *
+ * Prioridade:
+ * 1) Override público via env (NEXT_PUBLIC_API_URL ou NEXT_PUBLIC_API_BASE_URL)
+ * 2) No browser: usa o mesmo hostname do frontend e força porta 8000
+ *    Ex.: http://18.234.217.197:8000
+ * 3) No SSR/build/container: usa rede Docker interna (http://api:8000) ou API_INTERNAL_URL
+ *
+ * Importante:
+ * - NÃO use fallback para "http://localhost:8000" no browser, pois isso aponta para o PC do usuário.
  */
-export function getApiBase() {
-  return process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+export function getApiBase(): string {
+  const publicOverride = (
+    process.env.NEXT_PUBLIC_API_URL ||
+    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    ""
+  ).trim();
+
+  if (publicOverride) return publicOverride;
+
+  if (typeof window !== "undefined") {
+    const proto = window.location.protocol; // http: ou https:
+    const host = window.location.hostname;  // ex: 18.234.217.197
+    return `${proto}//${host}:8000`;
+  }
+
+  // Server-side / containers (Docker network)
+  return (process.env.API_INTERNAL_URL || "http://api:8000").trim();
 }
 
 /**
@@ -78,6 +101,7 @@ export function toCategoryTitle(slug: string) {
  */
 export function buildCategoryMap(data: ApiResponse | null | undefined) {
   const found = new Set<string>();
+
   if (data?.data) {
     for (const station of Object.values(data.data)) {
       for (const k of station.kpis || []) {
@@ -85,16 +109,20 @@ export function buildCategoryMap(data: ApiResponse | null | undefined) {
       }
     }
   }
+
   const names = Array.from(found).sort();
   const map: Record<string, { color: string; title: string }> = {};
+
   names.forEach((name, i) => {
     map[name] = {
       color: CATEGORY_COLORS[i % CATEGORY_COLORS.length],
       title: toCategoryTitle(name),
     };
   });
+
   if (!names.length) {
     map.default = { color: "bg-slate-400", title: "Seção" };
   }
+
   return map;
 }

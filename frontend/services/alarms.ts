@@ -1,38 +1,44 @@
-import type { HttpClient } from "@/services/http"
-import { getApiBase } from "@/lib/utils"
+import type { HttpClient } from "@/services/http";
 
-export type AlarmsService = {
-  getStatus: () => Promise<{ alarms_enabled: boolean }>
-  setStatus: (enabled: boolean) => Promise<void>
-}
+export type AlarmsStatusResponse = {
+  alarms_enabled: boolean;
+};
 
-/**
- * Cria o serviço de alarmes.
- * Responsável por obter e atualizar o status global do sistema de alarmes.
- * @param client Cliente HTTP injetado
- */
-export function createAlarmsService(client: HttpClient): AlarmsService {
+export type AlarmsSetResponse = {
+  ok: boolean;
+  alarms_enabled: boolean;
+};
+
+export function createAlarmsService(http: HttpClient) {
   return {
-    /**
-     * Obtém o status atual dos alarmes (ativado/desativado).
-     */
-    async getStatus() {
-      const res = await client.fetch(`${getApiBase()}/alarms/status`, { cache: "no-store" })
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      return (await res.json()) as { alarms_enabled: boolean }
+    async getStatus(): Promise<AlarmsStatusResponse> {
+      const res = await http.fetch("/alarms/status", { method: "GET" });
+      if (!res.ok) {
+        throw new Error("Falha ao carregar status dos alarmes");
+      }
+      const json = (await res.json()) as AlarmsStatusResponse;
+      return json;
     },
 
-    /**
-     * Atualiza o status global dos alarmes.
-     * @param enabled Novo estado (true = ativado, false = desativado)
-     */
-    async setStatus(enabled) {
-      const res = await client.fetch(`${getApiBase()}/alarms/status`, {
+    async setStatus(next: boolean): Promise<AlarmsSetResponse> {
+      const res = await http.fetch("/alarms/status", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ alarms_enabled: !!enabled }),
-      })
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        body: JSON.stringify({ alarms_enabled: next }),
+      });
+
+      if (!res.ok) {
+        // tenta extrair detail do FastAPI
+        let detail = "Falha ao atualizar status dos alarmes";
+        try {
+          const j = await res.json();
+          if (typeof j?.detail === "string") detail = j.detail;
+        } catch {}
+        throw new Error(detail);
+      }
+
+      const json = (await res.json()) as AlarmsSetResponse;
+      return json;
     },
-  }
+  };
 }

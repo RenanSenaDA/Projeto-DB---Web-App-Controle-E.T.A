@@ -86,15 +86,6 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <p className="text-sm text-center text-muted-foreground mt-4">
-            Não tem conta?{" "}
-            <Link
-              href="/register"
-              className="text-primary underline hover:opacity-80"
-            >
-              Criar conta
-            </Link>
-          </p>
         </CardContent>
       </Card>
     </div>

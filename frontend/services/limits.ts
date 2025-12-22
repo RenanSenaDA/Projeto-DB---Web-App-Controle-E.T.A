@@ -1,46 +1,44 @@
-import type { HttpClient } from "@/services/http"
-import { getApiBase, idToTag } from "@/lib/utils"
+import type { HttpClient } from "@/services/http";
 
-/**
- * Serviço de Limites.
- * Gerencia a atualização dos limites operacionais (setpoints) das KPIs.
- */
-export type LimitsService = {
-  updateById: (id: string, value: number) => Promise<void>
-  updateManyByTag: (limits: Record<string, number>) => Promise<void>
-}
+type LimitsGetResponse = {
+  limits: Record<string, number>;
+};
 
-/**
- * Factory para criar o serviço de Limites.
- * @param client Cliente HTTP injetado
- */
-export function createLimitsService(client: HttpClient): LimitsService {
+type LimitsPutPayload = {
+  limits: Record<string, number>;
+};
+
+export function createLimitsService(http: HttpClient) {
   return {
-    /**
-     * Atualiza o limite de uma única KPI pelo seu ID.
-     * Converte o ID interno para a Tag da API antes de enviar.
-     */
-    async updateById(id, value) {
-      const tag = idToTag(id)
-      const body = { limits: { [tag]: Number(value) } }
-      const res = await client.fetch(`${getApiBase()}/limits`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      })
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    async getAll(): Promise<LimitsGetResponse> {
+      const res = await http.fetch("/limits", { method: "GET" });
+      if (!res.ok) {
+        throw new Error("Falha ao carregar limites");
+      }
+      return (await res.json()) as LimitsGetResponse;
     },
 
     /**
-     * Atualiza múltiplos limites de uma vez usando um mapa de Tag -> Valor.
+     * Atualiza UM limite, reaproveitando o endpoint bulk /limits
+     * (envia apenas { limits: { [tag]: valor } } ).
+     *
+     * IMPORTANTE: aqui o "tag" deve ser o TAG REAL do banco:
+     * ex: "bombeamento/vazao", "decantacao/turbidez", etc.
      */
-    async updateManyByTag(limits) {
-      const res = await client.fetch(`${getApiBase()}/limits`, {
+    async updateByTag(tag: string, value: number): Promise<{ ok: boolean }> {
+      const payload: LimitsPutPayload = { limits: { [tag]: value } };
+
+      const res = await http.fetch("/limits", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ limits }),
-      })
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        throw new Error(txt || "Falha ao atualizar limite");
+      }
+      return (await res.json()) as { ok: boolean };
     },
-  }
+  };
 }

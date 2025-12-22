@@ -1,7 +1,7 @@
 "use client";
 
 import { Tabs, TabsContent } from "@/ui/tabs";
-import { Button } from "@/ui/button"; 
+import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
 
 import PageHeader from "@/components/header-page";
@@ -18,11 +18,6 @@ interface SettingsClientProps {
   initialData?: ApiResponse | null;
 }
 
-/**
- * Componente Cliente de Configurações.
- * Permite ajustar limites de alarme para cada KPI e ativar/desativar alarmes globais.
- * Usa useSettingsViewModel para lógica de persistência e feedback.
- */
 export default function SettingsClient({ initialData }: SettingsClientProps) {
   const {
     loading,
@@ -46,6 +41,15 @@ export default function SettingsClient({ initialData }: SettingsClientProps) {
   if (error) return <p className="text-red-500 p-6">Erro ao carregar dados.</p>;
   if (!data) return null;
 
+  // Converte (string do input) -> número para comparar
+  const parseForCompare = (raw: string): number | null => {
+    const v = (raw ?? "").trim();
+    if (!v) return null;
+    const n = Number(v.replace(",", "."));
+    if (Number.isNaN(n)) return null;
+    return n;
+  };
+
   return (
     <div className="container mx-auto p-6">
       <PageHeader
@@ -63,11 +67,7 @@ export default function SettingsClient({ initialData }: SettingsClientProps) {
                 alarmsEnabled ? "text-emerald-600" : "text-rose-600"
               )}
             >
-              {alarmsLoading
-                ? "..."
-                : alarmsEnabled
-                ? "ATIVADO"
-                : "DESATIVADO"}
+              {alarmsLoading ? "..." : alarmsEnabled ? "ATIVADO" : "DESATIVADO"}
             </span>
           </div>
           <Button
@@ -81,11 +81,7 @@ export default function SettingsClient({ initialData }: SettingsClientProps) {
                 : "bg-emerald-600 hover:bg-emerald-700"
             )}
           >
-            {toggling
-              ? "..."
-              : alarmsEnabled
-              ? "Desativar"
-              : "Ativar"}
+            {toggling ? "..." : alarmsEnabled ? "Desativar" : "Ativar"}
           </Button>
         </div>
       </PageHeader>
@@ -98,50 +94,61 @@ export default function SettingsClient({ initialData }: SettingsClientProps) {
             {Object.entries(categoryMap).map(([category, config]) => {
               const sectionItems = getKPIsForStationAndCategory(key, category);
               if (!sectionItems.length) return null;
-              
+
               return (
                 <div key={category} className="mb-10">
                   <SectionLabel title={config.title} color={config.color} />
                   <div className="space-y-4">
-                    {sectionItems.map((kpi) => (
-                      <div
-                        key={kpi.id}
-                        className="p-4 bg-white shadow-sm rounded-lg border flex flex-col gap-2"
-                      >
-                        <div className="flex flex-col lg:flex-row justify-between lg:items-center">
-                          <div className="mb-2 lg:mb-0">
-                            <p className="font-medium">{kpi.label}</p>
-                            <p className="text-sm text-slate-500">
-                              Valor atual: {formatValue(kpi.value)} {kpi.unit || ""}
-                            </p>
-                          </div>
+                    {sectionItems.map((kpi) => {
+                      const raw = limits[kpi.id] ?? "";
+                      const parsed = parseForCompare(raw);
+                      const current = kpi.limit ?? null;
 
-                          <div className="flex items-center gap-3 px-0">
-                            <Input
-                              type="number"
-                              className="w-full lg:w-28"
-                              placeholder="Limite"
-                              value={limits[kpi.id] ?? ""}
-                              onChange={(e) =>
-                                handleLimitChange(kpi.id, e.target.value)
-                              }
-                            />
+                      const unchanged =
+                        parsed === null
+                          ? current === null
+                          : current !== null && Number(parsed) === Number(current);
 
-                            <Button
-                              onClick={() => saveLimit(kpi.id)}
-                              disabled={
-                                limits[kpi.id] === null ||
-                                saving === kpi.id ||
-                                limits[kpi.id] === (kpi.limit ?? null)
-                              }
-                              className="min-w-[90px]"
-                            >
-                              {saving === kpi.id ? "Salvando..." : "Salvar"}
-                            </Button>
+                      const disableSave = saving === kpi.id || unchanged;
+
+                      return (
+                        <div
+                          key={kpi.id}
+                          className="p-4 bg-white shadow-sm rounded-lg border flex flex-col gap-2"
+                        >
+                          <div className="flex flex-col lg:flex-row justify-between lg:items-center">
+                            <div className="mb-2 lg:mb-0">
+                              <p className="font-medium">{kpi.label}</p>
+                              <p className="text-sm text-slate-500">
+                                Valor atual: {formatValue(kpi.value)}{" "}
+                                {kpi.unit || ""}
+                              </p>
+                            </div>
+
+                            <div className="flex items-center gap-3 px-0">
+                              <Input
+                                type="text"
+                                inputMode="decimal"
+                                className="w-full lg:w-28"
+                                placeholder="Limite"
+                                value={raw}
+                                onChange={(e) =>
+                                  handleLimitChange(kpi.id, e.target.value)
+                                }
+                              />
+
+                              <Button
+                                onClick={() => saveLimit(kpi.id)}
+                                disabled={disableSave}
+                                className="min-w-[90px]"
+                              >
+                                {saving === kpi.id ? "Salvando..." : "Salvar"}
+                              </Button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               );

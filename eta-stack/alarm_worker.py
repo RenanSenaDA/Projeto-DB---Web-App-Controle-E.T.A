@@ -92,7 +92,7 @@ def register_trigger(tag_norm: str):
 
 def load_config_and_limits(conn) -> tuple[bool, dict]:
     """
-    Lê alarms_enabled e limites_json da tabela config_sistema.
+    Lê alarms_enabled e limites_json da tabela eta.config_sistema.
     Retorna (alarms_enabled, limits_by_tag_lower).
     """
     limits = {k.lower(): v for k, v in DEFAULT_LIMITS_BY_TAG.items()}
@@ -101,7 +101,7 @@ def load_config_and_limits(conn) -> tuple[bool, dict]:
     with conn.cursor(cursor_factory=RealDictCursor) as cur:
         cur.execute(
             "SELECT alarms_enabled, limites_json "
-            "FROM config_sistema WHERE id = 1;"
+            "FROM eta.config_sistema WHERE id = 1;"
         )
         row = cur.fetchone()
 
@@ -161,7 +161,7 @@ def check_alerts():
         print("[ALARM WORKER] Limits by TAG:", limits_by_tag)
 
         if not alarms_enabled:
-            print("[ALARM WORKER] Alarmes DESATIVADOS em config_sistema. Não dispara nada.")
+            print("[ALARM WORKER] Alarmes DESATIVADOS em eta.config_sistema. Não dispara nada.")
             return
 
         rows = get_last_measurements(conn)
