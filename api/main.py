@@ -102,9 +102,6 @@ def send_brevo_invite(to_email: str, invite_link: str):
         print("AVISO: BREVO_API_KEY não configurada. E-mail não enviado.")
         return
 
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
-    logo_url = f"{frontend_url}/aqualink-logo-escuro.svg"
-
     payload = {
         "sender": {"name": sender_name, "email": sender_email},
         "to": [{"email": to_email}],
@@ -118,9 +115,9 @@ def send_brevo_invite(to_email: str, invite_link: str):
         </head>
         <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f4f4f5;">
             <div style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
-                <!-- Header com Logo -->
+                <!-- Header com Logo (Removida imagem, apenas texto ou barra) -->
                 <div style="background: linear-gradient(135deg, #00B2E2 0%, #0075A9 100%); padding: 40px 0; text-align: center;">
-                   <img src="{logo_url}" alt="Aqualink EQ" width="180" style="display: block; margin: 0 auto; max-width: 100%; height: auto;">
+                   <h1 style="color: #ffffff; margin: 0; font-size: 28px;">Aqualink EQ</h1>
                 </div>
 
                 <!-- Conteúdo Principal -->
@@ -345,7 +342,10 @@ def create_invite(payload: InviteIn, current_user_id: int = Depends(get_current_
         )
     
     # 4. Enviar E-mail
-    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    frontend_url = os.getenv("FRONTEND_URL")
+    if not frontend_url:
+        frontend_url = "http://localhost:3000"
+        
     link = f"{frontend_url}/register?token={token}"
     
     send_brevo_invite(payload.email, link)
