@@ -10,10 +10,10 @@ export type HttpClient = {
  * REGRAS:
  * - Browser: usa SEMPRE o IP/DNS atual + porta 8000
  * - SSR / Docker: usa api:8000
- * - Override explícito via NEXT_PUBLIC_API_URL
+ * - Override explícito via NEXT_PUBLIC_API_BASE_URL
  */
 export function getApiBase(): string {
-  const override = process.env.NEXT_PUBLIC_API_URL?.trim();
+  const override = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
   if (override) return override;
 
   // Browser: mesma origem + porta 8000

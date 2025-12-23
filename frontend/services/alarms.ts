@@ -1,4 +1,4 @@
-import type { HttpClient } from "@/services/http";
+import { getApiBase, type HttpClient } from "@/services/http";
 
 export type AlarmsStatusResponse = {
   alarms_enabled: boolean;
@@ -12,7 +12,7 @@ export type AlarmsSetResponse = {
 export function createAlarmsService(http: HttpClient) {
   return {
     async getStatus(): Promise<AlarmsStatusResponse> {
-      const res = await http.fetch("/alarms/status", { method: "GET" });
+      const res = await http.fetch(`${getApiBase()}/alarms/status`, { method: "GET" });
       if (!res.ok) {
         throw new Error("Falha ao carregar status dos alarmes");
       }
@@ -21,7 +21,7 @@ export function createAlarmsService(http: HttpClient) {
     },
 
     async setStatus(next: boolean): Promise<AlarmsSetResponse> {
-      const res = await http.fetch("/alarms/status", {
+      const res = await http.fetch(`${getApiBase()}/alarms/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ alarms_enabled: next }),
