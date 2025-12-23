@@ -102,26 +102,61 @@ def send_brevo_invite(to_email: str, invite_link: str):
         print("AVISO: BREVO_API_KEY não configurada. E-mail não enviado.")
         return
 
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    logo_url = f"{frontend_url}/aqualink-logo-escuro.svg"
+
     payload = {
         "sender": {"name": sender_name, "email": sender_email},
         "to": [{"email": to_email}],
         "subject": "Convite para acessar o Aqualink-EQ",
         "htmlContent": f"""
+        <!DOCTYPE html>
         <html>
-            <body style="font-family: Arial, sans-serif;">
-                <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 5px;">
-                    <h2 style="color: #0056b3;">Bem-vindo ao Aqualink-EQ</h2>
-                    <p>Você foi convidado para criar uma conta administrativa ou operacional no sistema.</p>
-                    <p>Clique no botão abaixo para definir sua senha e finalizar o cadastro:</p>
-                    <br/>
-                    <a href="{invite_link}" style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        </head>
+        <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f4f4f5;">
+            <div style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);">
+                <!-- Header com Logo -->
+                <div style="background: linear-gradient(135deg, #00B2E2 0%, #0075A9 100%); padding: 40px 0; text-align: center;">
+                   <img src="{logo_url}" alt="Aqualink EQ" width="180" style="display: block; margin: 0 auto; max-width: 100%; height: auto;">
+                </div>
+
+                <!-- Conteúdo Principal -->
+                <div style="padding: 40px 32px; text-align: center;">
+                    <h2 style="color: #1e293b; font-size: 24px; font-weight: 600; margin: 0 0 16px 0;">Bem-vindo(a) à equipe!</h2>
+                    
+                    <p style="color: #64748b; font-size: 16px; line-height: 1.6; margin: 0 0 32px 0;">
+                        Você foi convidado para criar uma <strong>conta operacional</strong> no sistema Aqualink-EQ.
+                        <br>Para começar, clique no botão abaixo e defina sua senha de acesso.
+                    </p>
+
+                    <!-- Botão de Ação -->
+                    <a href="{invite_link}" style="display: inline-block; background-color: #00B2E2; color: #ffffff; font-weight: 600; text-decoration: none; padding: 14px 32px; border-radius: 8px; transition: background-color 0.2s;">
                         Aceitar Convite
                     </a>
-                    <br/><br/>
-                    <p><small>Se o botão não funcionar, copie e cole este link: {invite_link}</small></p>
-                    <p><small>Este link expira em 24 horas.</small></p>
+
+                    <div style="margin-top: 32px; padding-top: 32px; border-top: 1px solid #e2e8f0;">
+                        <p style="color: #94a3b8; font-size: 13px; margin: 0 0 8px 0;">
+                            Se o botão não funcionar, copie e cole o link abaixo no seu navegador:
+                        </p>
+                        <a href="{invite_link}" style="color: #0075A9; font-size: 13px; text-decoration: none; word-break: break-all;">
+                            {invite_link}
+                        </a>
+                    </div>
                 </div>
-            </body>
+
+                <!-- Footer -->
+                <div style="background-color: #f8fafc; padding: 24px; text-align: center; border-top: 1px solid #e2e8f0;">
+                    <p style="color: #94a3b8; font-size: 12px; margin: 0;">
+                        Este link de convite expira em 24 horas.
+                        <br>
+                        © {datetime.now().year} Aqualink EQ. Todos os direitos reservados.
+                    </p>
+                </div>
+            </div>
+        </body>
         </html>
         """
     }
