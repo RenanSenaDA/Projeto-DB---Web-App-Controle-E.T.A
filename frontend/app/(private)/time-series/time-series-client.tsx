@@ -74,12 +74,12 @@ export default function TimeSeriesClient({
         title="Séries Temporais de KPIs"
         subtitle="Visualize a evolução dos indicadores por estação"
       >
-        <div className="flex items-center gap-2 bg-white p-2 rounded-lg border shadow-sm">
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider pl-2">
+        <div className="flex items-center gap-2 bg-card p-2 rounded-lg border shadow-sm">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider pl-2">
             Período:
           </span>
           <select
-            className="border-none bg-transparent text-sm font-medium focus:ring-0 cursor-pointer outline-none text-slate-700"
+            className="border-none bg-transparent text-sm font-medium focus:ring-0 cursor-pointer outline-none text-foreground"
             value={timeRange}
             onChange={(e) => setTimeRange(Number(e.target.value))}
           >

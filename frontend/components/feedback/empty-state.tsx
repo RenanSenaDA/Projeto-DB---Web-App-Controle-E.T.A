@@ -37,22 +37,22 @@ export default function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center py-12 text-center rounded-lg border border-dashed border-slate-300 bg-slate-50/50",
+        "flex flex-col items-center justify-center py-12 text-center rounded-lg border border-dashed border-border bg-muted/50",
         className
       )}
     >
-      <div className="bg-slate-100 p-3 rounded-full mb-4">
-        <Icon className="h-8 w-8 text-slate-400" />
+      <div className="bg-muted p-3 rounded-full mb-4">
+        <Icon className="h-8 w-8 text-muted-foreground" />
       </div>
-      <h3 className="text-lg font-medium text-slate-900 mb-1">{title}</h3>
-      <p className="text-sm text-slate-500 max-w-sm mx-auto mb-4">
+      <h3 className="text-lg font-medium text-foreground mb-1">{title}</h3>
+      <p className="text-sm text-muted-foreground max-w-sm mx-auto mb-4">
         {description}
       </p>
       {actionLabel && onAction && (
         <Button
           variant="outline"
           onClick={onAction}
-          className="text-slate-600 border-slate-300 hover:bg-white"
+          className="text-muted-foreground border-border hover:bg-background hover:text-foreground"
         >
           {actionLabel}
         </Button>

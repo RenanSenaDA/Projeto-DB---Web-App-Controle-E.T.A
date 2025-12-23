@@ -51,18 +51,18 @@ export default function SettingsClient({ initialData }: SettingsClientProps) {
       {/* Header da Seção */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-6 border-b gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-slate-900">
+          <h2 className="text-xl font-semibold text-foreground">
             Limites de Alarme
           </h2>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Defina os limites operacionais para alertas automáticos de cada
             sensor.
           </p>
         </div>
 
-        <div className="flex items-center gap-4 bg-slate-50 p-3 rounded-lg border">
+        <div className="flex items-center gap-4 bg-muted/50 p-3 rounded-lg border">
           <div className="flex flex-col items-end mr-2">
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-0.5">
               Monitoramento
             </span>
             <span
@@ -116,17 +116,17 @@ export default function SettingsClient({ initialData }: SettingsClientProps) {
                     {sectionItems.map((kpi) => (
                       <div
                         key={kpi.id}
-                        className="group p-4 bg-white hover:bg-slate-50 transition-colors rounded-xl border flex flex-col sm:flex-row gap-4 justify-between items-center"
+                        className="group p-4 bg-card hover:bg-muted/50 transition-colors rounded-xl border border-border flex flex-col sm:flex-row gap-4 justify-between items-center"
                       >
                         <div className="flex-1 w-full text-left">
-                          <p className="font-semibold text-slate-700">
+                          <p className="font-semibold text-foreground">
                             {kpi.label}
                           </p>
                           <div className="flex items-center gap-2 mt-1">
-                            <span className="text-xs font-medium text-slate-400 uppercase">
+                            <span className="text-xs font-medium text-muted-foreground uppercase">
                               Atual
                             </span>
-                            <span className="text-sm font-medium text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
+                            <span className="text-sm font-medium text-foreground bg-muted px-2 py-0.5 rounded">
                               {formatValue(kpi.value)} {kpi.unit || ""}
                             </span>
                           </div>
@@ -143,7 +143,7 @@ export default function SettingsClient({ initialData }: SettingsClientProps) {
                                 handleLimitChange(kpi.id, e.target.value)
                               }
                             />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 pointer-events-none">
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
                               Max
                             </span>
                           </div>
@@ -164,8 +164,8 @@ export default function SettingsClient({ initialData }: SettingsClientProps) {
                             className={cn(
                               "shrink-0 transition-all",
                               limits[kpi.id] !== (kpi.limit ?? null)
-                                ? "bg-blue-600 hover:bg-blue-700 text-white shadow-sm w-10 h-10"
-                                : "text-slate-400 hover:text-blue-600 w-10 h-10"
+                                ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm w-10 h-10"
+                                : "text-muted-foreground hover:text-primary w-10 h-10"
                             )}
                             title="Salvar alteração"
                           >

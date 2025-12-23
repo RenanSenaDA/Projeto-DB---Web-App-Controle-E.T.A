@@ -23,7 +23,7 @@ export default function SectionLabel({ title, color, titleClassName = "" }: Sect
     <div className="flex items-center gap-2 mb-4">
       <div className={cn("w-1 h-5 rounded-full shadow-sm", color)} />
 
-      <h3 className={cn("font-semibold tracking-tight", titleClassName || "text-slate-900")}>{title}</h3>
+      <h3 className={cn("font-semibold tracking-tight", titleClassName || "text-foreground")}>{title}</h3>
     </div>
   );
 }

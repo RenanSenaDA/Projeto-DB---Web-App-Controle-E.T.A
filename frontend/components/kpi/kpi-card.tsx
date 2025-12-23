@@ -38,7 +38,7 @@ const COLOR_MAP: Record<string, StyleTriplet> = {
  */
 function deriveStyles(colorClass?: string): StyleTriplet {
   if (!colorClass || !COLOR_MAP[colorClass]) {
-    return { border: "border-l-slate-400", text: "text-slate-500", bg: "bg-slate-100" }
+    return { border: "border-l-muted-foreground/40", text: "text-muted-foreground", bg: "bg-muted" }
   }
   return COLOR_MAP[colorClass]
 }
@@ -70,13 +70,13 @@ export default function KPICard({
   return (
     <Card
       className={cn(
-        "group relative overflow-hidden bg-white transition-all duration-300 hover:shadow-md border border-slate-200 border-l-4",
+        "group relative overflow-hidden bg-card transition-all duration-300 hover:shadow-md border border-border border-l-4",
         styles.border,
         className
       )}
     >
       <CardHeader className="flex items-start justify-between pb-2 space-y-0">
-        <CardTitle className="text-xs font-bold text-slate-600 uppercase tracking-wider">
+        <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
           {label}
         </CardTitle>
 
@@ -87,32 +87,34 @@ export default function KPICard({
         )}
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 relative z-10">
         <div className="flex items-end justify-between mt-1">
           {/* Valor Atual */}
           <div>
-            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide block mb-1">
+            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide block mb-1">
               Atual
             </span>
             <div className="flex items-baseline gap-1">
-              <span className="text-2xl font-bold text-slate-900 tracking-tight">
+              <span className={cn("text-2xl font-bold tracking-tight", styles.text)}>
                 {formatValue(value)}
               </span>
-              <span className="text-xs font-medium text-slate-900">{unit}</span>
+              <span className="text-sm font-medium text-muted-foreground">
+                {unit}
+              </span>
             </div>
           </div>
 
           {/* Limite */}
           {limit !== undefined && limit !== null && (
             <div className="text-right">
-              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide block mb-1">
+              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide block mb-1">
                 Limite
               </span>
               <div className="flex items-baseline justify-end gap-1">
-                <span className="text-lg font-semibold text-slate-600 tracking-tight">
+                <span className="text-lg font-semibold text-foreground tracking-tight">
                   {formatValue(limit)}
                 </span>
-                <span className="text-[10px] font-medium text-slate-400">
+                <span className="text-[10px] font-medium text-muted-foreground">
                   {unit}
                 </span>
               </div>
@@ -120,8 +122,8 @@ export default function KPICard({
           )}
         </div>
 
-        <div className="pt-3 border-t border-slate-100 flex items-center justify-start gap-2">
-          <p className="text-xs text-slate-400 tabular-nums">
+        <div className="pt-3 border-t border-border flex items-center justify-start gap-2">
+          <p className="text-xs text-muted-foreground tabular-nums">
             Última atualização {formatRelativeTime(updated_at)}
           </p>
         </div>

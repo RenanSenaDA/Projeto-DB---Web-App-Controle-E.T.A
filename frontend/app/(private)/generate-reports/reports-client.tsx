@@ -60,8 +60,8 @@ export default function ReportsClient({ initialData }: ReportsClientProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2 px-1">
-            <Calendar className="h-5 w-5 text-slate-400" />
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 px-1">
+            <Calendar className="h-5 w-5 text-muted-foreground" />
             Período Do Relatório
           </h2>
 
@@ -73,8 +73,8 @@ export default function ReportsClient({ initialData }: ReportsClientProps) {
           />
 
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2 px-1">
-              <CheckSquare className="h-5 w-5 text-slate-400" />
+            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 px-1">
+              <CheckSquare className="h-5 w-5 text-muted-foreground" />
               Seleção de Métricas
             </h2>
 

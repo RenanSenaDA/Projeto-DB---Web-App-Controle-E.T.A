@@ -46,7 +46,7 @@ interface StepAccordionItemProps {
 /**
  * Componente de item de acordeão para um grupo de KPIs.
  * Exibe o status de seleção e permite marcar métricas individualmente ou em grupo.
- * 
+ *
  * @component
  */
 export default function StepAccordionItem({
@@ -68,39 +68,54 @@ export default function StepAccordionItem({
   return (
     <AccordionItem
       value={systemKey}
-      className={cn(
-        "bg-white rounded-xl border border-slate-200 shadow-sm mb-4 overflow-hidden",
-        "data-[state=open]:border-blue-200 data-[state=open]:shadow-md"
-      )}
+      className="bg-card rounded-xl border shadow-sm mb-4 overflow-hidden"
     >
-      <AccordionTrigger className="flex px-4 py-4 hover:bg-slate-50/50">
+      <AccordionTrigger className="flex px-4 py-4 hover:bg-muted/50">
         <div className="flex items-center gap-3 text-left">
           <div className="p-2 rounded-lg bg-primary/10 border border-primary">
             <Icon className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h3 className="font-semibold text-slate-800 text-sm sm:text-base">
+            <h3 className="font-semibold text-foreground text-sm sm:text-base">
               {config.label}
             </h3>
-            <p className="text-xs text-slate-500 font-normal">
+            <p className="text-xs text-muted-foreground font-normal">
               {selectedCount} de {kpis.length} selecionados
             </p>
           </div>
         </div>
       </AccordionTrigger>
 
-      <AccordionContent className="px-4 pb-4 pt-0 border-t border-slate-100">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleSystemAll(kpis);
-          }}
-          className="text-xs font-medium text-secondary hover:underline px-2 mr-2 pt-4 hidden sm:block"
-        >
-          {allSelected ? "Desmarcar todos" : "Selecionar todos"}
-        </button>
+      <AccordionContent className="px-4 pb-4 pt-0 border-t border-border dark:border-white/10">
+        <div className="flex items-center justify-end py-3 mb-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleSystemAll(kpis);
+            }}
+            className="group flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-medium transition-all hover:bg-secondary/10 active:scale-95 border border-transparent hover:border-secondary/20"
+          >
+            <span
+              className={cn(
+                "text-secondary dark:text-foreground transition-colors"
+              )}
+            >
+              {allSelected ? "Desmarcar todos" : "Selecionar todos"}
+            </span>
+            <div
+              className={cn(
+                "h-4 w-4 rounded border flex items-center justify-center transition-colors",
+                allSelected
+                  ? "bg-secondary border-secondary text-secondary-foreground"
+                  : "border-muted-foreground/30 bg-background group-hover:border-secondary"
+              )}
+            >
+              {allSelected && <CheckCircle2 className="h-3 w-3" />}
+            </div>
+          </button>
+        </div>
 
-        <div className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {kpis.map((kpi) => {
             const isSelected = selectedKpis.includes(kpi.id);
             return (
@@ -108,10 +123,8 @@ export default function StepAccordionItem({
                 key={kpi.id}
                 onClick={() => onToggleKpi(kpi.id)}
                 className={cn(
-                  "flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all hover:bg-slate-50",
-                  isSelected
-                    ? "border-secondary bg-slate-50/50"
-                    : "border-slate-200"
+                  "flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-all hover:bg-muted/50",
+                  isSelected ? "border-secondary bg-muted/50" : "border-border"
                 )}
               >
                 <div
@@ -119,7 +132,7 @@ export default function StepAccordionItem({
                     "h-5 w-5 rounded border flex items-center justify-center",
                     isSelected
                       ? "bg-secondary border-secondary"
-                      : "bg-white border-slate-300"
+                      : "bg-background border-input"
                   )}
                 >
                   {isSelected && (
@@ -131,12 +144,12 @@ export default function StepAccordionItem({
                   <span
                     className={cn(
                       "text-sm font-medium truncate",
-                      isSelected ? "text-secondary" : "text-slate-600"
+                      isSelected ? "text-secondary dark:text-foreground" : "text-foreground"
                     )}
                   >
                     {kpi.label}
                   </span>
-                  <span className="text-[10px] text-slate-400 uppercase">
+                  <span className="text-[10px] text-muted-foreground uppercase">
                     {formatCategory(kpi.category)}
                   </span>
                 </div>

@@ -8,6 +8,8 @@ import { Input } from "@/ui/input";
 import { Button } from "@/ui/button";
 import { Card, CardHeader, CardContent, CardTitle } from "@/ui/card";
 import { useAuth } from "@/hooks/auth/use-auth";
+import { ModeToggle } from "@/components/mode-toggle";
+import Loading from "@/components/feedback/loading";
 
 function LoginForm() {
   const router = useRouter();
@@ -67,7 +69,7 @@ function LoginForm() {
 
       <Button
         type="submit"
-        className="w-full bg-secondary"
+        className="w-full bg-primary dark:text-secondary"
         disabled={loading || !isValidEmail}
       >
         Entrar
@@ -83,22 +85,39 @@ function LoginForm() {
  */
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted p-4">
+    <div className="min-h-screen flex items-center justify-center bg-muted p-4 relative">
+      <div className="absolute top-4 right-4">
+        <ModeToggle />
+      </div>
       <Card className="w-full max-w-sm shadow-md">
         <CardHeader className="flex flex-col items-center gap-3">
-          <Image
-            src="/aqualink-logo-escuro.svg"
-            alt="Logo"
-            width={128}
-            height={128}
-            priority
-          />
+          <div className="flex flex-col items-center justify-center pt-2.5 mb-4">
+            <Image
+              src="/aqualink-logo-escuro.svg"
+              alt="AquaLink Logo"
+              width={120}
+              height={40}
+              priority
+              className="dark:hidden"
+            />
+            <Image
+              src="/aqualink-logo.svg"
+              alt="AquaLink Logo"
+              width={120}
+              height={40}
+              priority
+              className="hidden dark:block"
+            />
+            <h1 className="mt-2 text-[10px] font-bold tracking-widest text-secondary-foreground uppercase opacity-70">
+              Sistema de Monitoramento
+            </h1>
+          </div>
 
           <CardTitle className="text-xl font-semibold">Acessar conta</CardTitle>
         </CardHeader>
 
         <CardContent>
-          <Suspense fallback={<div>Carregando...</div>}>
+          <Suspense fallback={<Loading />}>
             <LoginForm />
           </Suspense>
         </CardContent>

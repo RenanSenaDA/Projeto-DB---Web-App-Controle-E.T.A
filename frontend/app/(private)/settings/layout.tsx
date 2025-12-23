@@ -24,7 +24,7 @@ export default function SettingsLayout({
       <div className="mt-6 md:mt-8 flex flex-col lg:flex-row gap-6 md:gap-8">
         {/* Sidebar de Navegação */}
         <aside className="w-full lg:w-64 shrink-0">
-          <nav className="flex flex-row lg:flex-col lg:pt-2 bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <nav className="flex flex-row lg:flex-col lg:pt-2 lg:pb-2 bg-card rounded-xl border border-border shadow-sm overflow-hidden">
             <SettingsLink
               href="/settings/alarms"
               label="Alarmes & Limites"
@@ -41,7 +41,7 @@ export default function SettingsLayout({
         </aside>
 
         {/* Área de Conteúdo */}
-        <main className="flex-1 bg-white p-4 md:p-8 rounded-xl border border-slate-200 shadow-sm min-h-[500px]">
+        <main className="flex-1 bg-card p-4 md:p-8 rounded-xl border border-border shadow-sm min-h-[500px]">
           {children}
         </main>
       </div>
@@ -70,8 +70,8 @@ function SettingsLink({
         "flex-1 justify-center lg:flex-none lg:justify-start lg:w-full",
         "border-b-[3px] border-l-0 lg:border-b-0 lg:border-l-[3px]",
         isActive
-          ? "border-primary bg-slate-50 text-primary"
-          : "border-transparent text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+          ? "border-primary bg-accent text-primary"
+          : "border-transparent text-muted-foreground hover:bg-accent hover:text-accent-foreground"
       )}
     >
       {icon}

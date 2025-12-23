@@ -35,8 +35,8 @@ export function UsersList({ initialUsers }: UsersListProps) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12 text-slate-500 bg-slate-50 rounded-xl border border-slate-100">
-        <Loader2 className="w-5 h-5 animate-spin mr-3 text-blue-600" />
+      <div className="flex items-center justify-center py-12 text-muted-foreground bg-muted/50 rounded-xl border border-border">
+        <Loader2 className="w-5 h-5 animate-spin mr-3 text-primary" />
         Carregando lista de usuários...
       </div>
     );
@@ -44,7 +44,7 @@ export function UsersList({ initialUsers }: UsersListProps) {
 
   if (error) {
     return (
-      <div className="p-4 text-sm text-rose-600 bg-rose-50 rounded-lg border border-rose-100 flex items-center gap-2">
+      <div className="p-4 text-sm text-destructive bg-destructive/10 rounded-lg border border-destructive/20 flex items-center gap-2">
         <UserX className="w-4 h-4" />
         {error}
       </div>
@@ -52,9 +52,9 @@ export function UsersList({ initialUsers }: UsersListProps) {
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+    <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
       <Table>
-        <TableHeader className="bg-slate-50/80">
+        <TableHeader className="bg-muted/50">
           <TableRow>
             <TableHead className="w-[200px] px-6">Nome</TableHead>
             <TableHead className="px-6">Email</TableHead>
@@ -65,8 +65,8 @@ export function UsersList({ initialUsers }: UsersListProps) {
         </TableHeader>
         <TableBody>
           {users.map((user) => (
-            <TableRow key={user.id} className="hover:bg-slate-50">
-              <TableCell className="font-medium px-6 text-slate-900">
+            <TableRow key={user.id} className="hover:bg-muted/50">
+              <TableCell className="font-medium px-6 text-card-foreground">
                 {user.name || "Sem Nome"}
               </TableCell>
               <TableCell className="px-6">{user.email}</TableCell>
@@ -74,8 +74,8 @@ export function UsersList({ initialUsers }: UsersListProps) {
                 <span
                   className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border ${
                     user.role === "admin"
-                      ? "bg-purple-50 text-purple-700 border-purple-200"
-                      : "bg-blue-50 text-blue-700 border-blue-200"
+                      ? "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800"
+                      : "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800"
                   }`}
                 >
                   {user.role}
@@ -83,11 +83,11 @@ export function UsersList({ initialUsers }: UsersListProps) {
               </TableCell>
               <TableCell className="px-6">
                 {user.is_active ? (
-                  <span className="flex items-center text-emerald-600 gap-1.5 font-medium text-xs">
+                  <span className="flex items-center text-emerald-600 dark:text-emerald-400 gap-1.5 font-medium text-xs">
                     <UserCheck className="w-3.5 h-3.5" /> Ativo
                   </span>
                 ) : (
-                  <span className="flex items-center text-rose-600 gap-1.5 font-medium text-xs">
+                  <span className="flex items-center text-destructive gap-1.5 font-medium text-xs">
                     <UserX className="w-3.5 h-3.5" /> Inativo
                   </span>
                 )}
@@ -98,7 +98,7 @@ export function UsersList({ initialUsers }: UsersListProps) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-slate-400 hover:text-rose-600 hover:bg-rose-50 h-8 w-8 rounded-full"
+                      className="text-muted-foreground hover:text-rose-600 hover:bg-rose-50 h-8 w-8 rounded-full"
                       title="Remover usuário"
                       onClick={() => setUserToDelete(user.id)}
                     >

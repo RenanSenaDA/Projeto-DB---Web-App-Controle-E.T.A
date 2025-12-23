@@ -61,21 +61,21 @@ function CustomTooltip({ active, payload }: TooltipProps<number, string>) {
   const hora = d.toLocaleTimeString("pt-BR");
 
   return (
-    <div className="min-w-40 rounded-lg border bg-white px-3 py-2 shadow-lg">
+    <div className="min-w-40 rounded-lg border border-border bg-popover px-3 py-2 shadow-lg">
       <div className="flex flex-col gap-1 text-sm">
         <div className="flex justify-between">
-          <span className="text-neutral-500">Valor</span>
-          <span className="font-medium text-neutral-800">
+          <span className="text-muted-foreground">Valor</span>
+          <span className="font-medium text-popover-foreground">
             {item.value.toFixed(2)}
           </span>
         </div>
         <div className="flex justify-between">
-          <span className="text-neutral-500">Data</span>
-          <span className="font-medium text-neutral-800">{data}</span>
+          <span className="text-muted-foreground">Data</span>
+          <span className="font-medium text-popover-foreground">{data}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-neutral-500">Horário</span>
-          <span className="font-medium text-neutral-800">{hora}</span>
+          <span className="text-muted-foreground">Horário</span>
+          <span className="font-medium text-popover-foreground">{hora}</span>
         </div>
       </div>
     </div>
@@ -95,7 +95,7 @@ export default function KpiSeriesCard({ kpi, timeSeries }: KpiSeriesCardProps) {
   const isMedium = pointCount >= 20 && pointCount < 60;
   const gradId = `grad-${kpi.id}`;
   return (
-    <Card className="w-full border rounded-xl shadow-sm hover:shadow-md transition-all">
+    <Card className="w-full border border-border bg-card rounded-xl shadow-sm hover:shadow-md transition-all">
       <CardHeader>
         <CardTitle>
           {kpi.label ? kpi.label[0].toUpperCase() + kpi.label.slice(1) : ""}
@@ -151,8 +151,8 @@ export default function KpiSeriesCard({ kpi, timeSeries }: KpiSeriesCardProps) {
             </LineChart>
           )}
         </ChartContainer>
-        <div className="pt-3 border-t border-slate-100 flex items-center justify-start gap-2">
-          <p className="text-xs text-slate-400 tabular-nums">
+        <div className="pt-3 border-t border-border flex items-center justify-start gap-2">
+          <p className="text-xs text-muted-foreground tabular-nums">
             Última atualização {formatRelativeTime(kpi.updated_at)}
           </p>
         </div>

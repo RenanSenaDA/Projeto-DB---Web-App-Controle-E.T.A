@@ -75,6 +75,15 @@ export function AppSidebar() {
             width={120}
             height={40}
             priority
+            className="dark:hidden"
+          />
+          <Image
+            src="/aqualink-logo.svg"
+            alt="AquaLink Logo"
+            width={120}
+            height={40}
+            priority
+            className="hidden dark:block"
           />
           <h1 className="mt-2 text-[10px] font-bold tracking-widest text-secondary-foreground uppercase opacity-70">
             Sistema de Monitoramento
@@ -103,14 +112,14 @@ export function AppSidebar() {
                         ${
                           isActive
                             ? "bg-secondary text-primary hover:bg-secondary hover:text-primary font-medium"
-                            : "text-slate-500 hover:bg-primary/10 hover:text-secondary"
+                            : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                         }
                       `}
                     >
                       <Link href={item.url} prefetch>
                         <item.icon
                           className={
-                            isActive ? "text-primary" : "text-slate-400"
+                            isActive ? "text-primary" : "text-muted-foreground"
                           }
                         />
                         <span>{item.title}</span>
@@ -132,7 +141,7 @@ export function AppSidebar() {
                 router.push("/login");
               }}
               tooltip="Sair"
-              className="text-slate-500 hover:bg-rose-50 hover:text-red-500"
+              className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
             >
               <LogOut />
               <span>Sair</span>
@@ -140,7 +149,7 @@ export function AppSidebar() {
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" className="mt-2">
-              <div className="h-8 w-8 rounded-lg bg-slate-200 flex items-center justify-center overflow-hidden">
+              <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center overflow-hidden">
                 <span className="text-xs font-medium">
                   {((user?.name || user?.email || "CN").match(/\b\w/g) || [])
                     .slice(0, 2)

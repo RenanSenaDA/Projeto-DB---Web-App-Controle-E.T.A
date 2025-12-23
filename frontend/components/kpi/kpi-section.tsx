@@ -19,7 +19,7 @@ interface KPISectionProps {
  * @component
  */
 export default function KPISection({
-  color = "bg-slate-300",
+  color = "bg-muted",
   title_section = "Seção",
   children,
 }: KPISectionProps) {

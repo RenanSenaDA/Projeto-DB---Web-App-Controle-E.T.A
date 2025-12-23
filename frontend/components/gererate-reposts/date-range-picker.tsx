@@ -25,28 +25,28 @@ export default function DateRangePicker({
   onEndChange,
 }: DateRangePickerProps) {
   return (
-    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+    <div className="bg-card p-6 rounded-xl border border-border shadow-sm">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-600">
+          <label className="text-sm font-medium text-muted-foreground">
             Data Inicial
           </label>
           <input
             type="date"
             value={start}
             onChange={(e) => onStartChange(e.target.value)}
-            className="w-full p-2.5 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+            className="w-full p-2.5 rounded-lg border border-input bg-muted/50 text-foreground focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-600">
+          <label className="text-sm font-medium text-muted-foreground">
             Data Final
           </label>
           <input
             type="date"
             value={end}
             onChange={(e) => onEndChange(e.target.value)}
-            className="w-full p-2.5 rounded-lg border border-slate-300 bg-slate-50 text-slate-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+            className="w-full p-2.5 rounded-lg border border-input bg-muted/50 text-foreground focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
           />
         </div>
       </div>

@@ -44,14 +44,14 @@ export default function KpiSeriesFilter({
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-3 max-h-48 overflow-y-auto border rounded p-3 bg-white shadow-sm">
+      <div className="flex flex-wrap gap-3 max-h-48 overflow-y-auto border rounded p-3 bg-card shadow-sm">
         {allKpis.map((kpi) => (
           <label
             key={kpi.id}
             className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer transition ${
               selectedFilters.includes(kpi.id)
                 ? "bg-primary/10 border border-primary"
-                : "hover:bg-slate-100"
+                : "hover:bg-muted"
             }`}
           >
             <input

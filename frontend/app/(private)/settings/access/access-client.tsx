@@ -35,17 +35,17 @@ export default function AccessClient({ initialUsers }: AccessClientProps) {
   return (
     <div className="space-y-8">
       <div className="pb-6 border-b">
-        <h2 className="text-xl font-semibold text-slate-900 mb-1 flex items-center gap-2">
+        <h2 className="text-xl font-semibold text-foreground mb-1 flex items-center gap-2">
           <UserPlus2 className="w-6 h-6 text-primary" />
           Convidar Colaborador
         </h2>
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-muted-foreground">
           Envie um link de convite seguro para adicionar novos membros à equipe
           de colaboradores.
         </p>
       </div>
 
-      <div className="bg-slate-50/50 p-4 md:p-6 rounded-xl border border-dashed border-slate-200">
+      <div className="bg-muted/50 p-4 md:p-6 rounded-xl border border-dashed border-border">
         <InviteUserForm />
       </div>
 
