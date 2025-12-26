@@ -11,19 +11,19 @@ import TabsListStation from "@/components/tabs-list-station";
 import type { ApiResponse } from "@/types/kpi";
 import { formatValue } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { useSettingsViewModel } from "@/hooks/view/use-settings-view-model";
 import { Save } from "lucide-react";
+import { useLimitsViewModel } from "@/hooks/view/use-limits-view-model";
 
-interface SettingsClientProps {
+interface LimitsClientProps {
   initialData?: ApiResponse | null;
 }
 
 /**
  * Componente Cliente de Configurações.
  * Permite ajustar limites de alarme para cada KPI e ativar/desativar alarmes globais.
- * Usa useSettingsViewModel para lógica de persistência e feedback.
+ * Usa useLimitsViewModel para lógica de persistência e feedback.
  */
-export default function SettingsClient({ initialData }: SettingsClientProps) {
+export default function LimitsClient({ initialData }: LimitsClientProps) {        
   const {
     loading,
     error,
@@ -40,7 +40,7 @@ export default function SettingsClient({ initialData }: SettingsClientProps) {
     saveLimit,
     toggleAlarms,
     getKPIsForStationAndCategory,
-  } = useSettingsViewModel(initialData);
+  } = useLimitsViewModel  (initialData);
 
   if (loading) return <Loading />;
   if (error) return <p className="text-red-500 p-6">Erro ao carregar dados.</p>;

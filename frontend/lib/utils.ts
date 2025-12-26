@@ -26,7 +26,7 @@ export function cn(...inputs: ClassValue[]) {
  * Retorna a URL base da API.
  *
  * Prioridade:
- * 1) Override público via env (NEXT_PUBLIC_API_URL ou NEXT_PUBLIC_API_BASE_URL)
+ * 1) Override público via env (NEXT_PUBLIC_API_BASE_URL)
  * 2) No browser: usa o mesmo hostname do frontend e força porta 8000
  *    Ex.: http://18.234.217.197:8000
  * 3) No SSR/build/container: usa rede Docker interna (http://api:8000) ou API_INTERNAL_URL
@@ -35,17 +35,13 @@ export function cn(...inputs: ClassValue[]) {
  * - NÃO use fallback para "http://localhost:8000" no browser, pois isso aponta para o PC do usuário.
  */
 export function getApiBase(): string {
-  const publicOverride = (
-    process.env.NEXT_PUBLIC_API_URL ||
-    process.env.NEXT_PUBLIC_API_BASE_URL ||
-    ""
-  ).trim();
+  const publicOverride = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   if (publicOverride) return publicOverride;
 
   if (typeof window !== "undefined") {
     const proto = window.location.protocol; // http: ou https:
-    const host = window.location.hostname;  // ex: 18.234.217.197
+    const host = window.location.hostname; // ex: 18.234.217.197
     return `${proto}//${host}:8000`;
   }
 
@@ -64,6 +60,7 @@ export function idToTag(id: string) {
   return id.replace(/_/g, "/");
 }
 
+// Mapeamento de cores para categorias (cíclico)
 const CATEGORY_COLORS = [
   "bg-blue-600",
   "bg-emerald-600",

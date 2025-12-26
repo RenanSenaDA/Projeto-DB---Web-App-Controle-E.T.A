@@ -16,10 +16,16 @@ type LoginResponse = {
   user: AuthUser;
 };
 
+/**
+ * Hook de Autenticação.
+ * Gerencia o estado do usuário logado e operações de login/logout.
+ * Persiste o token em cookies (seguro) e dados não sensíveis no localStorage (UI).
+ */
 export function useAuth() {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
+  // Carrega apenas os dados públicos do usuário do storage para preencher a UI rapidamente
   const loadUserFromStorage = useCallback(() => {
     try {
       const raw = window.localStorage.getItem("auth_user");
@@ -51,17 +57,18 @@ export function useAuth() {
 
       const json = (await res.json()) as LoginResponse;
 
-      // 1) usuário
+      // 1) Salva dados do usuário (não sensíveis) no localStorage para UI
+      //    Isso é feito para preencher a UI rapidamente, mesmo sem token
       window.localStorage.setItem("auth_user", JSON.stringify(json.user));
       setUser(json.user);
 
-      // 2) token — CRÍTICO: o http.ts lê do localStorage
-      window.localStorage.setItem("token", json.token);
-      // opcional: compatibilidade com outras chaves
-      window.localStorage.setItem("access_token", json.token);
-
-      // 3) cookie opcional (se você já usava)
-      document.cookie = `auth_token=${json.token}; path=/; max-age=${60 * 60 * 8};`;
+      // 2) Salva o Token APENAS no Cookie
+      // Max-age: 8 horas (60 * 60 * 8)
+      // Secure: Só envia em HTTPS (importante para prod)
+      // SameSite=Strict: Protege contra CSRF
+      document.cookie = `auth_token=${json.token}; path=/; max-age=${
+        60 * 60 * 8
+      }; SameSite=Strict; Secure`;
 
       toast.success("Login realizado");
       return true;
@@ -73,13 +80,14 @@ export function useAuth() {
   }, []);
 
   const logout = useCallback(() => {
+    // Limpa dados do usuário
     window.localStorage.removeItem("auth_user");
+    
+    // Limpa chaves relacionadas ao token se existirem
     window.localStorage.removeItem("token");
-    window.localStorage.removeItem("access_token");
-    window.localStorage.removeItem("jwt");
 
-    // remove cookie (se existir)
-    document.cookie = "auth_token=; path=/; max-age=0;";
+    // Remove o cookie definindo uma data expirada
+    document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict; Secure";
 
     setUser(null);
     toast.success("Sessão encerrada");

@@ -1,5 +1,8 @@
 "use client";
 
+import { Badge } from "@/ui/badge";
+import { Button } from "@/ui/button";
+import { Filter, X } from "lucide-react";
 import type { KPIData } from "@/types/kpi";
 
 /**
@@ -18,7 +21,7 @@ interface KpiFilterProps {
 
 /**
  * Componente para filtrar visualização de séries temporais.
- * Exibe checkboxes para cada KPI disponível e botão de limpeza.
+ * Exibe badges interativos para cada KPI disponível e botão de limpeza.
  * 
  * @component
  */
@@ -29,40 +32,52 @@ export default function KpiSeriesFilter({
   clearFilters,
 }: KpiFilterProps) {
   return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-2">
-        <h4 className="text-sm font-semibold text-secondary-foreground">Filtro de KPIs</h4>
+    <div className="flex flex-col gap-4 bg-card rounded-lg border p-4 shadow-sm">
+      <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          {selectedFilters.length > 0 && (
-            <button
-              className="px-3 py-1 text-sm font-medium text-white bg-primary rounded hover:bg-secondary transition"
-              onClick={clearFilters}
-            >
-              Limpar
-            </button>
-          )}
+          <Filter className="w-4 h-4 text-primary" />
+          <h4 className="text-sm font-medium text-foreground">
+            Filtrar Indicadores
+          </h4>
+          <span className="text-xs text-muted-foreground ml-1">
+            ({selectedFilters.length} selecionados)
+          </span>
         </div>
+        
+        {selectedFilters.length > 0 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={clearFilters}
+            className="h-8 px-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+          >
+            Limpar filtros
+            <X className="w-3 h-3 ml-2" />
+          </Button>
+        )}
       </div>
 
-      <div className="flex flex-wrap gap-3 max-h-48 overflow-y-auto border rounded p-3 bg-card shadow-sm">
-        {allKpis.map((kpi) => (
-          <label
-            key={kpi.id}
-            className={`flex items-center gap-2 px-2 py-1 rounded cursor-pointer transition ${
-              selectedFilters.includes(kpi.id)
-                ? "bg-primary/10 border border-primary"
-                : "hover:bg-muted"
-            }`}
-          >
-            <input
-              type="checkbox"
-              className="text-primary"
-              checked={selectedFilters.includes(kpi.id)}
-              onChange={() => toggleFilter(kpi.id)}
-            />
-            <span className="text-sm">{kpi.label}</span>
-          </label>
-        ))}
+      <div className="flex flex-wrap gap-2">
+        {allKpis.map((kpi) => {
+          const isSelected = selectedFilters.includes(kpi.id);
+          
+          return (
+            <Badge
+              key={kpi.id}
+              variant={isSelected ? "default" : "outline"}
+              className={`
+                cursor-pointer transition-all py-1.5 px-3 text-sm font-normal
+                ${isSelected 
+                  ? "hover:bg-primary/90 shadow-sm" 
+                  : "hover:bg-accent hover:text-accent-foreground text-muted-foreground border-dashed"
+                }
+              `}
+              onClick={() => toggleFilter(kpi.id)}
+            >
+              {kpi.label}
+            </Badge>
+          );
+        })}
       </div>
     </div>
   );

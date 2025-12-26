@@ -1,90 +1,141 @@
-# Frontend AquaLink
+# Frontend Aqualink
 
-Aplicação web desenvolvida com **Next.js 15 (App Router)** e **TypeScript**, focada no monitoramento de estações de tratamento de água/esgoto. O sistema é projetado para ser **White Label Ready**, altamente performático e arquiteturalmente desacoplado seguindo o padrão **MVVM (Model-View-ViewModel)**.
+Interface web moderna e responsiva para o sistema de monitoramento de estações de tratamento de água (Aqualink EQ). Desenvolvida com **Next.js 16**, **TypeScript** e **Tailwind CSS v4**, a aplicação segue o padrão arquitetural **MVVM (Model-View-ViewModel)** para garantir desacoplamento, testabilidade e manutenibilidade.
 
 ## 🚀 Tecnologias Principais
 
-- **Framework**: Next.js 15 (App Router)
-- **Linguagem**: TypeScript (Strict Mode)
-- **Estilização**: Tailwind CSS (com variáveis CSS para temas)
-- **Componentes**: Shadcn/ui (Radix UI)
-- **Gráficos**: Recharts
-- **Ícones**: Lucide React
-- **HTTP Client**: Fetch API com abstração customizada
+*   **Framework**: [Next.js 16](https://nextjs.org/) (App Router)
+*   **Linguagem**: [TypeScript](https://www.typescriptlang.org/) (Strict Mode)
+*   **Estilização**: [Tailwind CSS v4](https://tailwindcss.com/)
+*   **Componentes UI**: [Shadcn/ui](https://ui.shadcn.com/) (baseado em Radix UI)
+*   **Visualização de Dados**: [Recharts](https://recharts.org/)
+*   **Ícones**: [Lucide React](https://lucide.dev/)
+*   **Notificações**: [Sonner](https://sonner.emilkowal.ski/)
+*   **Gerenciamento de Estado/Lógica**: Custom Hooks (Pattern MVVM)
 
 ## 🏛️ Arquitetura e Padrões
 
-O projeto segue rigorosos filtros de qualidade:
+O projeto adota uma arquitetura limpa e escalável, focada na separação de responsabilidades:
 
-1.  **Atomização & SOLID**: Componentes pequenos, reutilizáveis e com responsabilidade única.
-2.  **Desacoplamento (MVVM)**: Separação clara entre UI (View) e Lógica (ViewModel).
-    - **View**: Componentes React em `app/` e `components/`. Apenas renderizam dados.
-    - **ViewModel**: Custom Hooks em `hooks/view/`. Gerenciam estado, regras de negócio da tela e chamadas à API.
-    - **Model**: Interfaces em `types/` e Serviços em `services/`.
-3.  **Next.js Performance**:
-    - Uso intensivo de **Server Components** para o shell da aplicação.
-    - **Client Components** apenas onde há interatividade (hooks, eventos).
-    - Carregamento de dados otimizado e estratégias de cache.
-4.  **White Label Ready**:
-    - Zero uso de cores Hexadecimais hardcoded (`#ffffff`).
-    - Uso exclusivo de classes semânticas do Tailwind (`bg-primary`, `text-muted-foreground`) mapeadas para variáveis CSS (`globals.css`).
-    - Script de validação `npm run check-hex` para garantir conformidade.
+### Padrão MVVM (Model-View-ViewModel)
+
+1.  **Model**:
+    *   Definições de tipos em `types/`.
+    *   Serviços de comunicação com a API em `services/`.
+    *   Responsável apenas pela estrutura dos dados e chamadas HTTP puras.
+
+2.  **View**:
+    *   Componentes React localizados em `app/` (Páginas) e `components/` (UI).
+    *   Focam exclusivamente na renderização e interação visual.
+    *   Não contêm lógica de negócios complexa ou chamadas diretas à API.
+
+3.  **ViewModel**:
+    *   Custom Hooks localizados em `hooks/view/`.
+    *   Atuam como a ponte entre Model e View.
+    *   Gerenciam o estado local, efeitos colaterais (side effects), formatação de dados para exibição e regras de negócio da interface.
+
+### White Label Ready
+
+O sistema foi projetado para ser facilmente customizável (White Label):
+*   **Cores Semânticas**: Não utilizamos cores hexadecimais hardcoded (`#ffffff`, `#000000`) nos componentes.
+*   **Variáveis CSS**: Todas as cores são definidas em `styles/globals.css` usando variáveis CSS nativas mapeadas pelo Tailwind.
+*   **Validação Automática**: O script `npm run lint:colors` verifica a existência de cores proibidas no código.
 
 ## 📂 Estrutura de Pastas
 
 ```
 frontend/
-├── app/                  # Rotas (Next.js App Router)
-│   ├── (private)/        # Rotas protegidas (Dashboard, Settings, etc.)
-│   ├── (public)/         # Rotas públicas (Login, Register)
-│   └── layout.tsx        # Layout raiz
-├── components/           # Componentes de UI (Negócio)
-│   ├── feedback/         # Loadings, Error States, Empty States
-│   ├── kpi/              # Cards e visualizações de KPI
-│   └── ...
-├── hooks/                # Lógica da Aplicação
-│   ├── api/              # Hooks de integração de dados (Data Fetching)
-│   ├── auth/             # Hooks de autenticação
-│   ├── ui/               # Hooks de interface (responsividade, etc)
-│   └── view/             # View Models (Lógica específica de cada página)
-├── lib/                  # Utilitários puros (formatadores, helpers)
-├── services/             # Camada de Infraestrutura HTTP
-├── types/                # Definições de Tipos TypeScript
-└── ui/                   # Componentes Base (Shadcn/ui - Botões, Inputs, etc.)
+├── app/                    # Next.js App Router (Rotas e Páginas)
+│   ├── (private)/          # Rotas protegidas (Dashboard, Configurações, etc.)
+│   ├── (public)/           # Rotas públicas (Login, Registro)
+│   ├── layout.tsx          # Layout raiz da aplicação
+|   ├── page.tsx            # Página Inicial da aplicação (Login)
+├── components/             # Componentes Reutilizáveis
+│   ├── feedback/           # Loaders, Mensagens de Erro, Empty States
+│   ├── forms/              # Formulários (Login, Registro)
+│   ├── kpi/                # Componentes específicos de indicadores (Cards, Gráficos)
+│   ├── settings/           # Componentes das telas de configuração
+│   ├── generate-reports/   # Componentes para geração de relatórios
+|   └── ...                 # Outros componentes reutilizáveis
+├── hooks/                  # Lógica da Aplicação (Hooks)
+│   ├── api/                # Hooks de Data Fetching (useApi, useSeries, use-report-generate)
+│   ├── auth/               # Hooks de Autenticação (Login, Logout, Register)
+│   ├── ui/                 # Hooks de UI (Responsividade)
+│   └── view/               # ViewModels (Lógica específica de cada página)
+├── lib/                    # Utilitários puros (Formatadores de data/número)
+├── services/               # Camada de Serviço (HTTP Client, Endpoints)
+├── types/                  # Definições de Tipos TypeScript (Interfaces)
+├── ui/                     # Componentes Base do Design System (Botões, Inputs, Cards)
+└── scripts/                # Scripts auxiliares de manutenção
 ```
 
-## 🔄 Fluxos de Dados
+## ⚙️ Configuração
 
-### 1. Dashboard (`/dashboard`)
-- **Carregamento**: Busca payload inicial via `useApi`.
-- **Dinamismo**: As abas de estações e seções de categorias são geradas dinamicamente baseadas no JSON retornado.
-- **ViewModel**: `useDashboardViewModel` processa os dados brutos para separar KPIs por estação e categoria.
+A aplicação pode ser configurada através de variáveis de ambiente. Crie um arquivo `.env.local` na raiz do projeto `frontend/` se precisar sobrescrever os padrões:
 
-### 2. Séries Temporais (`/time-series`)
-- **Lazy Loading**: O gráfico só busca dados quando o usuário seleciona uma estação/categoria.
-- **Otimização**: Usa `cache: 'no-store'` para garantir dados realtime, mas faz cache local de navegação.
-- **ViewModel**: `useTimeSeriesViewModel` gerencia o filtro de data, seleção de estação e busca de pontos.
+```env
+# URL base da API Backend
+# Se não definido, o sistema tenta inferir:
+# 1. Browser: http://{hostname}:8000
+# 2. Server-side (Docker): http://api:8000
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+```
 
-### 3. Relatórios (`/generate-reports`)
-- **Geração**: Permite selecionar KPIs e datas.
-- **Download**: O backend gera um Excel (blob) que é baixado pelo navegador.
-- **Arquitetura**: Separação entre estado do formulário (`useReportViewModel`) e ação de gerar (`useReportGenerate`).
+## 🚀 Instalação e Execução
 
-### 4. Configurações (`/settings`)
-- **Gerenciamento**: Permite definir limites (máximos) para KPIs e ativar/desativar alarmes globais.
-- **Feedback**: Feedback otimista e notificações via `sonner` (Toast).
+Certifique-se de ter o **Node.js** (versão 18 ou superior) instalado.
 
-## 🛠️ Scripts Disponíveis
+1.  **Instale as dependências:**
 
-- `npm run dev`: Inicia servidor de desenvolvimento.
-- `npm run build`: Build de produção.
-- `npm run start`: Inicia servidor de produção.
-- `npm run lint`: Verifica erros de linting.
-- **`npm run check-hex`**: Verifica se existem cores hexadecimais hardcoded nos arquivos (essencial para White Label).
+    ```bash
+    npm install
+    ```
 
-## 🎨 Temas e Estilização
+2.  **Execute o servidor de desenvolvimento:**
 
-A personalização é feita via variáveis CSS em `styles/globals.css`. Para mudar o tema (cores de um cliente específico), basta alterar os valores das variáveis HSL (`--primary`, `--secondary`, etc.), sem tocar no código React.
+    ```bash
+    npm run dev
+    ```
+
+    A aplicação estará disponível em `http://localhost:3000`.
+
+3.  **Build de Produção:**
+
+    ```bash
+    npm run build
+    npm run start
+    ```
+
+## � Scripts Disponíveis
+
+*   `npm run dev`: Inicia o servidor de desenvolvimento com Hot Reload.
+*   `npm run build`: Cria a versão otimizada para produção.
+*   `npm run start`: Inicia o servidor de produção (requer build prévio).
+*   `npm run lint`: Executa a verificação estática de código (ESLint).
+*   `npm run lint:colors`: Executa o script de validação de cores para garantir conformidade com White Label.
+
+## 📱 Funcionalidades Principais
+
+### Dashboard (`/dashboard`)
+Visão geral em tempo real das estações de tratamento.
+*   Exibição de KPIs categorizados (Qualidade, Operacional).
+*   Alertas visuais baseados em limites configuráveis.
+*   Atualização dinâmica de dados.
+
+### Séries Temporais (`/time-series`)
+Análise histórica de dados de KPIs.
+*   Gráficos interativos com seleção de período e sensores.
+*   Filtros dinâmicos por tag.
+
+### Relatórios (`/generate-reports`)
+Exportação de dados.
+*   Geração de planilhas Excel (.xlsx).
+*   Filtros por período pré-definido ou intervalo personalizado.
+
+### Configurações (`/settings`)
+Gestão do sistema.
+*   **Controle de Acesso**: Convidar e listagem de usuários (Admin).
+*   **Alarmes**: Configuração de limites operacionais para KPIs.
 
 ---
 **Desenvolvido com foco em Manutenibilidade, Performance e Escalabilidade.**

@@ -16,7 +16,6 @@ import { NextResponse, type NextRequest } from "next/server";
 const publicRoutes = [
   { path: "/", whenAuthenticated: "redirect" },
   { path: "/login", whenAuthenticated: "redirect" },
-  // Removido: /register (cadastro público desativado)
 ] as const;
 
 const REDIRECT_WHEN_AUTHENTICATED_ROUTE = "/dashboard";
@@ -25,6 +24,13 @@ const REDIRECT_WHEN_NOT_AUTHENTICATED_ROUTE = "/login";
 export default function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const publicRoute = publicRoutes.find((route) => route.path === path);
+  const searchParams = request.nextUrl.searchParams;
+  const token = searchParams.get("token");
+
+  // Permite acesso à rota de registro se houver um token (convite)
+  if (path === "/register" && token) {
+    return NextResponse.next();
+  }
 
   // Token via cookie (suporta variação "__Secure-")
   const authToken =

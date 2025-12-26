@@ -4,13 +4,13 @@ import { useCallback, useState } from "react";
 import { RegisterInvitePayload } from "@/services/auth";
 
 /**
- * Custom hook for Registration Authentication logic.
- * Encapsulates API interactions related to user registration and invite validation.
+ * Hook personalizado para lógica de Autenticação de Registro.
+ * Encapsula as interações com a API relacionadas ao registro de usuário e validação de convite.
  * 
- * @returns {Object} Auth operations and state
- * @returns {Function} validateInvite - Validates the invitation token
- * @returns {Function} registerUser - Completes user registration
- * @returns {boolean} loadingAuth - Loading state for auth operations
+ * @returns {Object} Operações e estado de autenticação
+ * @returns {Function} validateInvite - Valida o token do convite
+ * @returns {Function} registerUser - Finaliza o registro do usuário
+ * @returns {boolean} loadingAuth - Estado de carregamento para operações de auth
  */
 export function useRegisterAuth() {
   const [loadingAuth, setLoadingAuth] = useState(false);

@@ -41,7 +41,7 @@ export default function RegisterPage() {
               priority
               className="hidden dark:block"
             />
-            <h1 className="mt-2 text-[10px] font-bold tracking-widest text-secondary-foreground uppercase opacity-70">
+            <h1 className="mt-2 text-[10px] font-bold tracking-widest dark:text-secondary-foreground uppercase opacity-70">
               Sistema de Monitoramento
             </h1>
           </div>

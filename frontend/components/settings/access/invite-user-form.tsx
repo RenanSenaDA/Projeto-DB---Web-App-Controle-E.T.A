@@ -20,7 +20,7 @@ export function InviteUserForm() {
     <form onSubmit={handleInvite} className="flex flex-col sm:flex-row gap-4 sm:items-end max-w-lg">
       <div className="flex-1 space-y-2">
         <label htmlFor="invite-email" className="text-sm font-medium leading-none">
-          E-mail do novo administrador
+          E-mail do novo colaborador
         </label>
         <Input
           id="invite-email"

@@ -4,41 +4,41 @@ import { Button } from "@/ui/button";
 import { Input } from "@/ui/input";
 
 export interface RegisterFormProps {
-  /** The email address associated with the invite token (read-only) */
+  /** O endereço de e-mail associado ao token do convite (somente leitura) */
   email: string;
-  /** The user's full name input value */
+  /** O valor do campo nome completo */
   name: string;
-  /** Callback for name input changes */
+  /** Callback para alteração do nome */
   onNameChange: (val: string) => void;
-  /** The password input value */
+  /** O valor do campo senha */
   password: string;
-  /** Callback for password input changes */
+  /** Callback para alteração da senha */
   onPasswordChange: (val: string) => void;
-  /** The password confirmation input value */
+  /** O valor do campo confirmação de senha */
   confirmPassword: string;
-  /** Callback for password confirmation input changes */
+  /** Callback para alteração da confirmação de senha */
   onConfirmPasswordChange: (val: string) => void;
-  /** Form submission handler */
+  /** Handler de envio do formulário */
   onSubmit: (e: React.FormEvent) => void;
-  /** Flag indicating if the registration is in progress */
+  /** Flag indicando se o registro está em andamento */
   submitting: boolean;
-  /** Flag indicating if the invite token is valid */
+  /** Flag indicando se o token do convite é válido */
   validToken: boolean;
-  /** Callback to navigate back to login page */
+  /** Callback para navegar de volta para a página de login */
   onNavigateToLogin: () => void;
-  /** Flag indicating if the token validation is in progress */
+  /** Flag indicando se a validação do token está em andamento */
   initializing: boolean;
 }
 
 /**
- * RegisterForm Component
+ * Componente RegisterForm
  * 
- * A pure UI component responsible for rendering the registration form.
- * It handles:
- * - Loading state display during token validation
- * - Error state display for invalid tokens
- * - Form fields for user details
- * - Visual validation feedback (via UI state)
+ * Componente de UI puro responsável por renderizar o formulário de registro.
+ * Gerencia:
+ * - Exibição do estado de carregamento durante a validação do token
+ * - Exibição de estado de erro para tokens inválidos
+ * - Campos de formulário para detalhes do usuário
+ * - Feedback visual de validação (via estado da UI)
  */
 export function RegisterForm({
   email,

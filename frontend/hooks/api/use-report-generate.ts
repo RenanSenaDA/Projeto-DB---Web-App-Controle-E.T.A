@@ -24,7 +24,7 @@ export default function useReportGenerator(apiData: ApiResponse | null) {
     selectedKpis: string[],
     dateRange: { start: string; end: string }
   ) => {
-    if (!apiData) return;
+    if (!apiData) return false;
     setIsGenerating(true);
     try {
       const svc = createReportsService(defaultHttpClient);
@@ -38,9 +38,15 @@ export default function useReportGenerator(apiData: ApiResponse | null) {
       a.remove();
       window.URL.revokeObjectURL(url);
       toast.success("Relatório gerado com sucesso");
+      return true;
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Erro ao gerar relatório";
-      toast.error(msg);
+      if (msg.includes("404")) {
+        toast.error("Não há dados para o período selecionado.");
+      } else {
+        toast.error(msg);
+      }
+      return false;
     } finally {
       setIsGenerating(false);
     }

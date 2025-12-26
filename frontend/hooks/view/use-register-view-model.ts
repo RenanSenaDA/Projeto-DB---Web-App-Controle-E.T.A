@@ -4,16 +4,16 @@ import { toast } from "sonner";
 import { useRegisterAuth } from "@/hooks/auth/use-register-auth";
 
 /**
- * ViewModel for the Registration Page.
- * Implements MVVM pattern by separating view logic from UI components.
+ * ViewModel para a Página de Registro.
+ * Implementa o padrão MVVM separando a lógica de visualização dos componentes de UI.
  * 
- * Responsibilities:
- * - Manages form state (name, password, etc.)
- * - Handles token validation logic on mount
- * - Orchestrates registration flow via useRegisterAuth
- * - Manages UI states (loading, errors, navigation)
+ * Responsabilidades:
+ * - Gerencia o estado do formulário (nome, senha, etc.)
+ * - Lida com a lógica de validação do token na montagem
+ * - Orquestra o fluxo de registro via useRegisterAuth
+ * - Gerencia estados da UI (carregamento, erros, navegação)
  * 
- * @returns Object containing form state, status flags, and event handlers
+ * @returns Objeto contendo estado do formulário, flags de status e manipuladores de eventos
  */
 export function useRegisterViewModel() {
   const searchParams = useSearchParams();

@@ -8,9 +8,9 @@ import Error from "@/components/feedback/error";
 import Loading from "@/components/feedback/loading";
 
 import PageHeader from "@/components/header-page";
-import SummaryCard from "@/components/gererate-reposts/summary-card";
-import DateRangePicker from "@/components/gererate-reposts/date-range-picker";
-import StepAccordionItem from "@/components/gererate-reposts/step-accordion-item";
+import SummaryCard from "@/components/gererate-reports/summary-card";
+import DateRangePicker from "@/components/gererate-reports/date-range-picker";
+import StepAccordionItem from "@/components/gererate-reports/step-accordion-item";
 
 import useApi from "@/hooks/api/use-api";
 import useReportGenerator from "@/hooks/api/use-report-generate";
@@ -104,10 +104,11 @@ export default function ReportsClient({ initialData }: ReportsClientProps) {
           <SummaryCard
             selectedCount={selectedKpis.length}
             dateRange={dateRange}
-            onGenerate={() => {
-              void generateExcel(selectedKpis, dateRange).then(() => {
+            onGenerate={async () => {
+              const success = await generateExcel(selectedKpis, dateRange);
+              if (success) {
                 clearAll();
-              });
+              }
             }}
             isGenerating={isGenerating}
             isDisabled={loading || !!error}

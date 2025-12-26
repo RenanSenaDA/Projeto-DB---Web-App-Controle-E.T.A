@@ -20,10 +20,10 @@ function extractTagFromLabel(label: string): string {
 }
 
 /**
- * ViewModel para a página de Configurações.
+ * ViewModel para a página de Configurações de Limites.
  * Gerencia a edição de limites de KPIs e o status global de alarmes.
  */
-export function useSettingsViewModel(initialData?: ApiResponse | null) {
+export function useLimitsViewModel(initialData?: ApiResponse | null) {
   const { loading, error, data, fetchData } = useApi(initialData);
 
   const [limits, setLimits] = useState<Record<string, number | null>>({});

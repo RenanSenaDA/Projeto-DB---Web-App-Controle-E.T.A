@@ -1,89 +1,20 @@
 "use client";
 
-import { useMemo, useState, useEffect, Suspense } from "react";
-import { toast } from "sonner";
+import { Suspense } from "react";
 import Image from "next/image";
-import { useRouter, useSearchParams } from "next/navigation";
-import { Input } from "@/ui/input";
-import { Button } from "@/ui/button";
 import { Card, CardHeader, CardContent, CardTitle } from "@/ui/card";
-import { useAuth } from "@/hooks/auth/use-auth";
 import { ModeToggle } from "@/components/mode-toggle";
 import Loading from "@/components/feedback/loading";
-
-function LoginForm() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { login, loading } = useAuth();
-
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
-
-  useEffect(() => {
-    if (searchParams.get("registered") === "1") {
-      toast.success("Conta criada com sucesso! Faça login para continuar.");
-      // Limpar param da URL sem reload
-      router.replace("/login");
-    }
-  }, [searchParams, router]);
-
-  // Validação simples de formato de e-mail
-  const isValidEmail = useMemo(() => {
-    if (!email) return false;
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  }, [email]);
-
-  /**
-   * Manipula o envio do formulário de login.
-   */
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email || !senha) return;
-    if (!isValidEmail) {
-      toast.error("E-mail inválido");
-      return;
-    }
-    try {
-      await login(email, senha);
-      router.push("/dashboard");
-    } catch {}
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <Input
-        type="email"
-        placeholder="E-mail"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        required
-      />
-
-      <Input
-        type="password"
-        placeholder="Senha"
-        value={senha}
-        onChange={(e) => setSenha(e.target.value)}
-        required
-      />
-
-      <Button
-        type="submit"
-        className="w-full bg-primary dark:text-secondary"
-        disabled={loading || !isValidEmail}
-      >
-        Entrar
-      </Button>
-    </form>
-  );
-}
+import { LoginForm } from "@/components/forms/login-form";
+import { useLoginViewModel } from "@/hooks/view/use-login-view-model";
 
 /**
  * Página de Login.
- * Permite ao usuário autenticar-se no sistema usando e-mail e senha.
- * Utiliza o hook useAuth para gerenciar a requisição de login.
+ * Compõe a interface utilizando o ViewModel e o componente de formulário.
  */
 export default function LoginPage() {
+  const vm = useLoginViewModel();
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted p-4 relative">
       <div className="absolute top-4 right-4">
@@ -108,7 +39,7 @@ export default function LoginPage() {
               priority
               className="hidden dark:block"
             />
-            <h1 className="mt-2 text-[10px] font-bold tracking-widest text-secondary-foreground uppercase opacity-70">
+            <h1 className="mt-2 text-[10px] font-bold tracking-widest dark:text-secondary-foreground uppercase opacity-70">
               Sistema de Monitoramento
             </h1>
           </div>
@@ -118,7 +49,15 @@ export default function LoginPage() {
 
         <CardContent>
           <Suspense fallback={<Loading />}>
-            <LoginForm />
+            <LoginForm 
+              email={vm.email}
+              onEmailChange={vm.setEmail}
+              password={vm.password}
+              onPasswordChange={vm.setPassword}
+              onSubmit={vm.handleSubmit}
+              loading={vm.loading}
+              isValidEmail={vm.isValidEmail}
+            />
           </Suspense>
         </CardContent>
       </Card>

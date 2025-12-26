@@ -1,7 +1,13 @@
 "use client";
 
 import { Tabs, TabsContent } from "@/ui/tabs";
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/ui/select"; // Verifique se o caminho está correto para seu projeto (ex: @/components/ui/select)
 import Error from "@/components/feedback/error";
 import PageHeader from "@/components/header-page";
 import Loading from "@/components/feedback/loading";
@@ -74,21 +80,27 @@ export default function TimeSeriesClient({
         title="Séries Temporais de KPIs"
         subtitle="Visualize a evolução dos indicadores por estação"
       >
-        <div className="flex items-center gap-2 bg-card p-2 rounded-lg border shadow-sm">
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider pl-2">
+        {/* Container do Select com estilo de "Input Group" */}
+        <div className="flex items-center gap-2 bg-card p-1 pr-3 rounded-lg border shadow-sm transition-colors">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider pl-3">
             Período:
           </span>
-          <select
-            className="border-none bg-transparent text-sm font-medium focus:ring-0 cursor-pointer outline-none text-foreground"
-            value={timeRange}
-            onChange={(e) => setTimeRange(Number(e.target.value))}
+
+          <Select
+            value={String(timeRange)}
+            onValueChange={(value) => setTimeRange(Number(value))}
           >
-            {TIME_RANGES.map((r) => (
-              <option key={r.value} value={r.value}>
-                {r.label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="h-8 border-none bg-transparent shadow-none focus:ring-0 gap-2 w-auto min-w-[140px] text-sm font-medium text-foreground">
+              <SelectValue placeholder="Selecione o período" />
+            </SelectTrigger>
+            <SelectContent>
+              {TIME_RANGES.map((r) => (
+                <SelectItem key={r.value} value={String(r.value)}>
+                  {r.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </PageHeader>
 
@@ -96,7 +108,9 @@ export default function TimeSeriesClient({
         <EmptyState
           title="Nenhum dado encontrado"
           description="Não encontramos leituras para o período selecionado. Tente aumentar o intervalo de tempo ou limpar os filtros."
-          actionLabel={selectedFilters.length > 0 ? "Limpar Filtros" : undefined}
+          actionLabel={
+            selectedFilters.length > 0 ? "Limpar Filtros" : undefined
+          }
           onAction={selectedFilters.length > 0 ? clearFilters : undefined}
         />
       ) : (

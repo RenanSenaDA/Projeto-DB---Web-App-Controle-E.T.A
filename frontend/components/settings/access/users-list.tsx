@@ -28,6 +28,11 @@ interface UsersListProps {
   initialUsers?: User[];
 }
 
+/**
+ * Componente de Lista de Usuários.
+ * Exibe uma tabela com os usuários cadastrados e permite a exclusão.
+ * Utiliza o UsersListViewModel para gerenciar o estado.
+ */
 export function UsersList({ initialUsers }: UsersListProps) {
   const { users, loading, error, handleDelete } =
     useUsersListViewModel(initialUsers);

@@ -32,6 +32,13 @@ export function formatValue(
   });
 }
 
+/**
+ * Formata um slug de categoria para um texto legível (Title Case).
+ * Substitui underscores por espaços e capitaliza cada palavra.
+ * 
+ * @param value - Slug da categoria (ex: "tratamento_agua")
+ * @returns String formatada (ex: "Tratamento Agua")
+ */
 export const formatCategory = (value: string | null | undefined) => {
   if (!value) return "";
 
@@ -41,6 +48,14 @@ export const formatCategory = (value: string | null | undefined) => {
     .join(" ");
 };
 
+/**
+ * Gera uma série temporal mockada para fins de demonstração/teste.
+ * Cria 10 pontos de dados retroativos a partir do momento atual.
+ * 
+ * @param kpiId - ID da KPI (não utilizado na lógica, apenas para assinatura)
+ * @param base - Valor base para gerar variações aleatórias
+ * @returns Array de objetos com timestamp e value
+ */
 export function generateTimeSeries(kpiId: string, base: number) {
   const now = Date.now();
   return Array.from({ length: 10 }).map((_, i) => ({
