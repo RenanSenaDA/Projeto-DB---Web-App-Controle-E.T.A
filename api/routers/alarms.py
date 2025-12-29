@@ -1,0 +1,41 @@
+from fastapi import APIRouter
+from sqlalchemy import text
+from database.connection import get_engine
+from schemas.alarms import AlarmsIn 
+
+router = APIRouter()
+
+@router.get("/alarms/status")
+def alarms_status():
+    """
+    Verifica o estado global do sistema de alarmes (Ativado/Desativado).
+    Se a configuração não existir na base de dados, assume 'True' por omissão.
+    """
+    eng = get_engine()
+    with eng.connect() as conn:
+        row = conn.execute(text("SELECT alarms_enabled FROM config_sistema WHERE id=1;")).fetchone()
+    
+    return {"alarms_enabled": bool(row._mapping["alarms_enabled"]) if row else True}
+
+@router.put("/alarms/status")
+def set_alarms(payload: AlarmsIn):
+    """
+    Altera o estado global dos alarmes.
+    Permite silenciar todo o sistema durante manutenções para evitar spam de e-mails.
+    """
+    eng = get_engine()
+    with eng.begin() as conn:
+        # Tenta atualizar o registo existente
+        result = conn.execute(text("""
+            UPDATE config_sistema 
+            SET alarms_enabled = :v, updated_at = now() 
+            WHERE id = 1;
+        """), {"v": bool(payload.alarms_enabled)})
+        
+        # Se o registo ID=1 não existir, cria-o
+        if result.rowcount == 0:
+            conn.execute(text("""
+                INSERT INTO config_sistema (id, alarms_enabled) VALUES (1, :v)
+            """), {"v": bool(payload.alarms_enabled)})
+            
+    return {"ok": True}

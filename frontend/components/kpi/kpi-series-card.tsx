@@ -14,26 +14,8 @@ import {
 import { ChartContainer, ChartTooltip } from "@/ui/chart";
 import { Card, CardContent, CardHeader, CardTitle } from "@/ui/card";
 import { formatRelativeTime } from "@/lib/format";
-
-interface KPIData {
-  id: string;
-  label: string;
-  value?: number | null;
-  unit: string;
-  updated_at: string;
-}
-
-/**
- * Ponto de dado para o gráfico de série temporal.
- */
-export interface TimeSeriesPoint {
-  /** Timestamp ISO string */
-  ts: string;
-  /** Rótulo formatado para o eixo X */
-  label: string;
-  /** Valor numérico da medição */
-  value: number;
-}
+import type { KPIData } from "@/types/kpi";
+import type { ChartDataPoint } from "@/types/time-series";
 
 /**
  * Propriedades do Card de Série Temporal.
@@ -42,7 +24,7 @@ interface KpiSeriesCardProps {
   /** Metadados da KPI (nome, unidade, etc.) */
   kpi: KPIData;
   /** Array de pontos de dados históricos */
-  timeSeries: TimeSeriesPoint[];
+  timeSeries: ChartDataPoint[];
 }
 
 /**

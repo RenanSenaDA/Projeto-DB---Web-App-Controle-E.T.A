@@ -1,65 +1,51 @@
-from __future__ import annotations
-
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List
-
-from fastapi import APIRouter, Query
+from typing import List, Dict
+from datetime import datetime, timedelta
+from fastapi import APIRouter
 from sqlalchemy import text
+from database.connection import get_engine
+from schemas.measurements import SeriesPoint 
 
-from api.database.connection import get_engine
+router = APIRouter()
 
-router = APIRouter(prefix="/measurements", tags=["Measurements"])
-
-
-@router.get("/series")
-def measurements_series(
-    tags: List[str] = Query(..., description="Lista de tags. Pode repetir ?tags=... ou enviar uma string com tags separadas por vírgula."),
-    minutes: int = Query(60, ge=1, le=60 * 24 * 30, description="Janela em minutos (máx. 30 dias)"),
-) -> Dict[str, Any]:
+@router.get("/measurements/series", response_model=Dict[str, List[SeriesPoint]])
+def series(tags: str, minutes: int = 60):
     """
-    Retorna séries temporais para as tags solicitadas, dentro da janela de tempo (minutes).
-
-    Formato:
-      {
-        "minutes": 60,
-        "series": {
-          "tag1": [{"ts": "...", "value": 1.23}, ...],
-          "tag2": [{"ts": "...", "value": 4.56}, ...]
-        }
-      }
+    Recupera séries temporais de medições para os sensores especificados.
     """
+    tag_list = [t.strip() for t in tags.split(",") if t.strip()]
 
-    # Se veio 1 item contendo tags separadas por vírgula, normaliza
-    if len(tags) == 1 and "," in tags[0]:
-        tags = [t.strip() for t in tags[0].split(",") if t.strip()]
+    if not tag_list:
+        return {}
 
-    since = datetime.now(timezone.utc) - timedelta(minutes=minutes)
+    end_dt = datetime.utcnow()
+    start_dt = end_dt - timedelta(minutes=minutes)
+    
+    eng = get_engine() 
 
-    # Usa schema eta.measurement conforme seu banco
-    stmt = text(
-        """
-        SELECT tag, ts, value
-        FROM eta.measurement
-        WHERE tag = ANY(:tags)
-          AND ts >= :since
-        ORDER BY ts ASC
-        """
-    )
-
-    engine = get_engine()
-
-    series: Dict[str, List[Dict[str, Any]]] = {t: [] for t in tags}
-
-    with engine.connect() as conn:
-        rows = conn.execute(stmt, {"tags": tags, "since": since}).fetchall()
-
-    for tag, ts, value in rows:
-        # normaliza timestamp para ISO
-        if isinstance(ts, datetime) and ts.tzinfo is None:
-            ts = ts.replace(tzinfo=timezone.utc)
-
-        series.setdefault(tag, []).append(
-            {"ts": ts.isoformat() if isinstance(ts, datetime) else str(ts), "value": value}
+    with eng.connect() as conn:
+        q = text(
+            """
+            SELECT m.ts, s.tag, m.value, s.unit
+            FROM eta.measurement m
+            JOIN eta.sensor s ON s.id = m.sensor_id
+            WHERE m.ts >= :start_dt AND m.ts <= :end_dt AND s.tag = ANY(:tags)
+            ORDER BY s.tag, m.ts ASC;
+            """
         )
+        rows = conn.execute(q, {"start_dt": start_dt, "end_dt": end_dt, "tags": tag_list}).fetchall()
 
-    return {"minutes": minutes, "series": series}
+    # Dica de tipagem para o editor (opcional, mas bom para dev)
+    data: Dict[str, List[SeriesPoint]] = {}
+
+    for r in rows:
+        tag = r._mapping["tag"]
+        val = r._mapping["value"]
+
+        data.setdefault(tag, []).append({
+            "ts": r._mapping["ts"],
+            "value": float(val) if val is not None else 0.0,
+            "unit": r._mapping.get("unit"),
+        })
+        # O Pydantic (SeriesPoint) vai validar esse dicionário automaticamente na saída graças ao response_model
+
+    return data

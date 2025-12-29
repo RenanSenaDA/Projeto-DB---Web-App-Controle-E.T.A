@@ -1,20 +1,9 @@
-"""
-Arquivo principal da aplicação FastAPI Aqualink API.
-
-Este módulo inicializa a aplicação FastAPI, configura middlewares (CORS) e registra as rotas.
-"""
-from api.routers.measurements import router as measurements_router
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import auth, dashboard, reports        
+from routers import auth, dashboard, reports, measurements, limits, alarms
 
-app = FastAPI(
-    title="Aqualink API", 
-    version="0.2.0",
-    description="API para monitoramento e gestão de qualidade da água (Aqualink EQ)."
-)
+app = FastAPI(title="Aqualink API", version="0.2.0")
 
-# Configuração do CORS para permitir acesso de qualquer origem
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -23,11 +12,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Registra as rotas da aplicação
 app.include_router(auth.router, prefix="/auth", tags=["Auth"])
 app.include_router(dashboard.router, prefix="/dashboard", tags=["Dashboard"])
 app.include_router(reports.router, prefix="/reports", tags=["Reports"])
-app.include_router(measurements_router)
+app.include_router(measurements.router, tags=["Sensors & Data"])
+app.include_router(limits.router, tags=["Limits"])
+app.include_router(alarms.router, tags=["Alarms"])
 
 @app.get("/")
 def root():

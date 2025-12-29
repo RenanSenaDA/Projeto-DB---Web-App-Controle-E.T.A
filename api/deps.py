@@ -51,5 +51,5 @@ def get_current_admin(user_id: int = Depends(get_current_user)):
     with eng.connect() as conn:
         row = conn.execute(text("SELECT role FROM eta.app_user WHERE id=:id"), {"id": user_id}).fetchone()
         if not row or row._mapping["role"] != 'admin':
-             raise HTTPException(status_code=403, detail="Acesso restrito a administradores")
+            raise HTTPException(status_code=403, detail="Acesso restrito a administradores")
     return user_id

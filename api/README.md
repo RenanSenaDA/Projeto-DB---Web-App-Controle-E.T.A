@@ -14,13 +14,18 @@ api/
 ├── database/           # Conexão com o banco de dados
 │   └── connection.py   # Configuração do SQLAlchemy
 ├── routers/            # Rotas da API (Endpoints)
-│   ├── auth.py         # Autenticação, login e gestão de usuários
-│   ├── dashboard.py    # Dados para o dashboard em tempo real
+│   └── auth.py         # Autenticação, login e gestão de usuários
+│   └── dashboard.py    # Dados para o dashboard em tempo real
 │   └── reports.py      # Geração de relatórios Excel
+│   └── alarms.py       # Ativação e Desativalção dos alarmes
+│   └── limits.py       # Retorno e Atualização dos Limites
+│   └── measurements.py # Recupera séries temporais de medições para os sensores especificados.
 ├── schemas/            # Modelos Pydantic para validação de dados
 │   ├── auth.py         # Schemas de login e usuário
 │   ├── dashboard.py    # Schemas de KPI e resposta do dashboard
-│   └── sensor.py       # Schemas de sensores e medições
+│   ├── alarms.py       # Schemas de Alarmes
+│   ├── limits.py       # Schemas de Limites
+│   ├── measurements.py # Schemas de Medições
 ├── services/           # Lógica de negócios e serviços externos
 │   ├── email_service.py # Envio de e-mails via Brevo
 │   └── report_service.py # Geração de planilhas Excel com Pandas

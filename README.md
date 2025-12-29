@@ -69,7 +69,6 @@ O projeto propõe um **sistema centralizado**, capaz de integrar medições de d
   - Variáveis: `DATABASE_URL` (ou `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD`, `PGDATABASE`), `LOCAL_TZ`, `FEED_INTERVAL`.
   - Endpoints:
     - `GET /dashboard`
-    - `GET /measurements/latest`
     - `GET /measurements/series?tags=...&minutes=...`
     - `GET /limits` e `PUT /limits`
     - `GET /alarms/status` e `PUT /alarms/status`

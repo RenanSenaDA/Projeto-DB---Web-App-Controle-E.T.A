@@ -2,11 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { createMeasurementsService } from "@/services/measurements";
 import { defaultHttpClient } from "@/services/http";
-
-type SeriesMap = Record<
-  string,
-  { ts: string; value: number; unit?: string | null }[]
->;
+import type { SeriesMap } from "@/types/time-series";
 
 /**
  * Hook para buscar séries temporais históricas.

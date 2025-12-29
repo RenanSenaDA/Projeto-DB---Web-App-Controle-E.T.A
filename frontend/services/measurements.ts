@@ -1,12 +1,6 @@
 import type { HttpClient } from "@/services/http"
 import { getApiBase } from "@/lib/utils"
-
-// Tipo: ponto de série temporal retornado pela API
-// Campos: ts (ISO timestamp), value (número), unit (opcional)
-export type SeriesPoint = { ts: string; value: number; unit?: string | null }
-
-// Mapa de tag para lista de pontos da série
-export type SeriesMap = Record<string, SeriesPoint[]>
+import type { SeriesMap } from "@/types/time-series"
 
 /**
  * Serviço de Medições.

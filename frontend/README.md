@@ -11,7 +11,6 @@ Interface web moderna e responsiva para o sistema de monitoramento de estações
 *   **Visualização de Dados**: [Recharts](https://recharts.org/)
 *   **Ícones**: [Lucide React](https://lucide.dev/)
 *   **Notificações**: [Sonner](https://sonner.emilkowal.ski/)
-*   **Gerenciamento de Estado/Lógica**: Custom Hooks (Pattern MVVM)
 
 ## 🏛️ Arquitetura e Padrões
 
