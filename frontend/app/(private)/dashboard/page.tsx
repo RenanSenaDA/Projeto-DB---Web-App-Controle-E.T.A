@@ -1,7 +1,7 @@
 import { createDashboardService } from "@/services/dashboard";
 import { defaultHttpClient } from "@/services/http";
 import DashboardClient from "./dashboard-client";
-
+export const dynamic = "force-dynamic";
 /**
  * Página do Dashboard (Server Component).
  * Realiza o fetch inicial dos dados no servidor para melhor performance (SSR).

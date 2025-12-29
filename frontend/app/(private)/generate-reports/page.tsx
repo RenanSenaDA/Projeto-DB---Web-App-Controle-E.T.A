@@ -1,7 +1,7 @@
 import { createDashboardService } from "@/services/dashboard";
 import { defaultHttpClient } from "@/services/http";
 import ReportsClient from "./reports-client";
-
+export const dynamic = "force-dynamic";
 /**
  * Página de Relatórios (Server Component).
  * Busca dados iniciais para popular o seletor de KPIs.

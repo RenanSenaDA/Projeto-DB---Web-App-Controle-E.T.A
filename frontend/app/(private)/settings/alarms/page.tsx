@@ -1,7 +1,7 @@
 import { createDashboardService } from "@/services/dashboard";
 import { defaultHttpClient } from "@/services/http";
 import SettingsClient from "./settings-client";
-
+export const dynamic = "force-dynamic";
 /**
  * Página de Configurações (Server Component).
  * Busca dados iniciais para exibir os limites atuais das KPIs.
