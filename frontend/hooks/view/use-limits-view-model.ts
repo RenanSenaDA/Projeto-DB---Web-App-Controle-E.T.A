@@ -28,6 +28,8 @@ export function useLimitsViewModel(initialData?: ApiResponse | null) {
 
   const [limits, setLimits] = useState<Record<string, number | null>>({});
   const [saving, setSaving] = useState<string | null>(null);
+
+  // null = ainda não carregou / erro
   const [alarmsEnabled, setAlarmsEnabled] = useState<boolean | null>(null);
   const [alarmsLoading, setAlarmsLoading] = useState<boolean>(true);
   const [toggling, setToggling] = useState<boolean>(false);
@@ -63,7 +65,7 @@ export function useLimitsViewModel(initialData?: ApiResponse | null) {
     setLimits(initial);
   }, [data]);
 
-  // Carrega status dos alarmes (GET pode ser público)
+  // Carrega status dos alarmes
   const loadAlarmsStatus = useCallback(async () => {
     setAlarmsLoading(true);
     try {
@@ -121,25 +123,34 @@ export function useLimitsViewModel(initialData?: ApiResponse | null) {
   );
 
   const toggleAlarms = useCallback(async () => {
+    // evita clique durante carregamento/toggle
+    if (alarmsLoading || toggling) return;
     if (alarmsEnabled === null) return;
 
     const next = !alarmsEnabled;
 
     setToggling(true);
     try {
-      // backend atual retorna { ok: true } (sem alarms_enabled),
-      // então confirmamos pelo "next" e opcionalmente recarregamos status.
+      // PUT retorna { ok: true }, então sincronizamos via GET em seguida
       await alarmsSvc.setStatus(next);
+
+      // Atualiza UI imediatamente (feedback rápido)
       setAlarmsEnabled(next);
       toast.success(next ? "Alarmes ativados" : "Alarmes desativados");
+
+      // Confirma com o backend (fonte da verdade)
+      await loadAlarmsStatus();
     } catch (e: unknown) {
       const msg =
         e instanceof Error ? e.message : "Falha ao atualizar status dos alarmes";
       toast.error(msg);
+
+      // Recarrega status para não deixar UI fora de sincronia
+      await loadAlarmsStatus().catch(() => {});
     } finally {
       setToggling(false);
     }
-  }, [alarmsEnabled, alarmsSvc]);
+  }, [alarmsEnabled, alarmsLoading, toggling, alarmsSvc, loadAlarmsStatus]);
 
   const getKPIsForStationAndCategory = useCallback(
     (stationKey: string, categoryId: string) => {
