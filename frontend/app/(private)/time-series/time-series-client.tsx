@@ -68,7 +68,7 @@ export default function TimeSeriesClient({
     return filtered.map((kpi) => (
       <KpiSeriesCard
         key={kpi.id}
-        kpi={{ ...kpi, value: kpi.value ?? undefined, unit: kpi.unit ?? "" }}
+        kpi={{ ...kpi, value: kpi.value ?? null, unit: kpi.unit ?? "" }}
         timeSeries={getSeriesForKpi(kpi.id)}
       />
     ));
