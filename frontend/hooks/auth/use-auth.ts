@@ -44,7 +44,7 @@ export function useAuth() {
 
   const login = useCallback(async (email: string, password: string) => {
     try {
-      const res = await defaultHttpClient.fetch("/login", {
+      const res = await defaultHttpClient.fetch("/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -82,12 +82,13 @@ export function useAuth() {
   const logout = useCallback(() => {
     // Limpa dados do usuário
     window.localStorage.removeItem("auth_user");
-    
+
     // Limpa chaves relacionadas ao token se existirem
     window.localStorage.removeItem("token");
 
     // Remove o cookie definindo uma data expirada
-    document.cookie = "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict; Secure";
+    document.cookie =
+      "auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict; Secure";
 
     setUser(null);
     toast.success("Sessão encerrada");
