@@ -48,12 +48,11 @@ def get_db_url() -> str:
 
 DB_URL = get_db_url()
 
-# Tabela de status global (MESMA do backend)
-# Recomendo manter isso no .env compartilhado:
-# CONFIG_SISTEMA_TABLE=public.config_sistema
-CONFIG_SISTEMA_TABLE = (os.getenv("CONFIG_SISTEMA_TABLE", "public.config_sistema").strip()
-                        or "public.config_sistema")
-
+# Tabela de status global (DEVE ser a MESMA do backend/API).
+# Padrão recomendado: eta.config_sistema
+CONFIG_SISTEMA_TABLE = (os.getenv("CONFIG_SISTEMA_TABLE", "eta.config_sistema") or "").strip()
+if not CONFIG_SISTEMA_TABLE:
+    CONFIG_SISTEMA_TABLE = "eta.config_sistema"
 
 # =====================================================================
 # CONFIG GERAL
@@ -162,7 +161,7 @@ def db_connect():
 
 def ensure_config_sistema_row() -> None:
     """
-    Garante que exista (id=1) em public.config_sistema.
+    Garante que exista (id=1) em CONFIG_SISTEMA_TABLE.
     """
     try:
         conn = db_connect()
@@ -172,7 +171,7 @@ def ensure_config_sistema_row() -> None:
         if not row:
             cur.execute(
                 f"INSERT INTO {CONFIG_SISTEMA_TABLE}(id, alarms_enabled, updated_at) "
-                f"VALUES (1, TRUE, now());"
+                f"VALUES (1, FALSE, now());"
             )
             conn.commit()
         cur.close()
@@ -183,11 +182,10 @@ def ensure_config_sistema_row() -> None:
 
 def is_alarms_enabled() -> bool:
     """
-    Lê o status dos alarmes na tabela public.config_sistema (id=1).
-    Se der erro, assume True (para não ficar mudo).
+    Fonte ÚNICA de verdade: eta.config_sistema.alarms_enabled (id=1).
+    Fail-safe: se der erro, assume False (evita spam).
     """
     try:
-        ensure_config_sistema_row()
         conn = db_connect()
         cur = conn.cursor()
         cur.execute(f"SELECT alarms_enabled FROM {CONFIG_SISTEMA_TABLE} WHERE id=1;")
@@ -195,17 +193,13 @@ def is_alarms_enabled() -> bool:
         cur.close()
         conn.close()
 
-        if row is None:
-            print("[ALARM WORKER] config_sistema sem row id=1. Assumindo TRUE.")
-            return True
-
-        enabled = bool(row.get("alarms_enabled"))
-        print(f"[ALARM WORKER] Status dos alarmes em {CONFIG_SISTEMA_TABLE}: {enabled}")
+        enabled = bool(row["alarms_enabled"]) if row and "alarms_enabled" in row else False
+        print(f"[ALARM WORKER] alarms_enabled (DB) = {enabled}")
         return enabled
 
     except Exception as e:
-        print("[ALARM WORKER] Erro ao ler config_sistema, assumindo TRUE. Erro:", e)
-        return True
+        print("[ALARM WORKER] Falha ao consultar alarms_enabled no DB. Bloqueando envio (fail-safe). Erro:", e)
+        return False
 
 
 def get_last_measurements():
@@ -390,7 +384,8 @@ def check_alerts():
 
 
 def main_loop():
-    print("[ALARM WORKER] Motor de alarmes iniciado. Loop 24/7...")
+    print(f"[ALARM WORKER] Motor de alarmes iniciado. Tabela de status: {CONFIG_SISTEMA_TABLE}. Loop 24/7...")
+    ensure_config_sistema_row()
     while True:
         try:
             check_alerts()

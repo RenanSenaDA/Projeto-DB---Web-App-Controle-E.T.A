@@ -44,6 +44,56 @@ export type AuthService = {
 };
 
 /**
+ * Converte respostas de erro (FastAPI) em mensagens amigáveis.
+ * - FastAPI 422 costuma vir com: { detail: [{ loc, msg, type }, ...] }
+ * - Outros erros podem vir com: { detail: "..." }
+ */
+async function extractApiErrorMessage(
+  res: Response,
+  fallback: string
+): Promise<string> {
+  // Tenta JSON
+  try {
+    const data: any = await res.json();
+
+    // detail como array (422 validation)
+    if (Array.isArray(data?.detail)) {
+      const msgs = data.detail
+        .map((e: any) => (typeof e?.msg === "string" ? e.msg : null))
+        .filter(Boolean) as string[];
+
+      if (msgs.length > 0) {
+        // remove duplicadas
+        const unique = Array.from(new Set(msgs));
+        return unique.join("\n");
+      }
+    }
+
+    // detail como string
+    if (typeof data?.detail === "string" && data.detail.trim()) {
+      return data.detail.trim();
+    }
+
+    // mensagem alternativa comum
+    if (typeof data?.message === "string" && data.message.trim()) {
+      return data.message.trim();
+    }
+  } catch {
+    // ignora
+  }
+
+  // Tenta texto puro (caso backend retorne plain text)
+  try {
+    const txt = await res.text();
+    if (txt && txt.trim()) return txt.trim();
+  } catch {
+    // ignora
+  }
+
+  return fallback;
+}
+
+/**
  * Cria a instância do serviço de Auth.
  * @param client - Cliente HTTP para realizar as requisições.
  */
@@ -54,28 +104,24 @@ export function createAuthService(client: HttpClient): AuthService {
     /**
      * Valida se um token de convite é legítimo e ainda não expirou.
      * Endpoint: GET /auth/validate-invite/{token}
-     * @param token - O hash do convite.
-     * @returns {Promise<InviteValidationResponse>} O e-mail associado ao convite.
-     * @throws {Error} Se o convite for inválido ou expirado.
      */
     async validateInvite(token: string) {
       const res = await client.fetch(
         `${baseUrl}/auth/validate-invite/${token}`,
-        {
-          cache: "no-store",
-        }
+        { cache: "no-store" }
       );
+
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.detail || "Convite inválido");
+        const msg = await extractApiErrorMessage(res, "Convite inválido");
+        throw new Error(msg);
       }
+
       return res.json();
     },
 
     /**
      * Finaliza o registro de um novo usuário a partir de um convite.
      * Endpoint: POST /auth/register-invite
-     * @param payload - Objeto contendo token, nome e senha.
      */
     async registerInvite(payload: RegisterInvitePayload) {
       const res = await client.fetch(`${baseUrl}/auth/register-invite`, {
@@ -85,16 +131,15 @@ export function createAuthService(client: HttpClient): AuthService {
       });
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.detail || "Erro ao criar conta");
+        // Aqui é onde vai aparecer: "Senha fraca: incluir letra minúscula", etc.
+        const msg = await extractApiErrorMessage(res, "Erro ao criar conta");
+        throw new Error(msg);
       }
     },
 
     /**
      * Lista todos os usuários cadastrados (Requer privilégios de Admin).
      * Endpoint: GET /auth/users
-     * @param token - Token JWT do administrador logado.
-     * @returns {Promise<User[]>} Lista de usuários.
      */
     async getUsers(token: string) {
       const res = await client.fetch(`${baseUrl}/auth/users`, {
@@ -104,38 +149,36 @@ export function createAuthService(client: HttpClient): AuthService {
 
       if (!res.ok) {
         if (res.status === 403) throw new Error("Acesso negado");
-        throw new Error("Falha ao carregar usuários");
+        const msg = await extractApiErrorMessage(res, "Falha ao carregar usuários");
+        throw new Error(msg);
       }
+
       return res.json();
     },
 
     /**
      * Envia um convite por e-mail para um novo usuário (Requer privilégios de Admin).
      * Endpoint: POST /auth/invite
-     * @param email - E-mail do destinatário.
-     * @param token - Token JWT do administrador logado.
      */
     async inviteUser(email: string, token: string) {
       const res = await client.fetch(`${baseUrl}/auth/invite`, {
         method: "POST",
-        headers: { 
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}` 
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ email }),
       });
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.detail || "Erro ao enviar convite");
+        const msg = await extractApiErrorMessage(res, "Erro ao enviar convite");
+        throw new Error(msg);
       }
     },
 
     /**
      * Remove um usuário do sistema (Requer privilégios de Admin).
      * Endpoint: DELETE /auth/users/{userId}
-     * @param userId - ID do usuário a ser removido.
-     * @param token - Token JWT do administrador logado.
      */
     async deleteUser(userId: number, token: string) {
       const res = await client.fetch(`${baseUrl}/auth/users/${userId}`, {
@@ -144,8 +187,8 @@ export function createAuthService(client: HttpClient): AuthService {
       });
 
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.detail || "Erro ao remover usuário");
+        const msg = await extractApiErrorMessage(res, "Erro ao remover usuário");
+        throw new Error(msg);
       }
     },
   };
