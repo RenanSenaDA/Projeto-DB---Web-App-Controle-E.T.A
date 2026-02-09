@@ -24,9 +24,21 @@ interface SummaryCardProps {
 }
 
 /**
+ * Formata date-only (YYYY-MM-DD) para pt-BR (DD/MM/YYYY) sem envolver timezone.
+ */
+function formatDateBR(dateOnly: string) {
+  const raw = String(dateOnly || "").trim();
+  const parts = raw.split("-");
+  if (parts.length !== 3) return raw || "-";
+  const [y, m, d] = parts;
+  if (!y || !m || !d) return raw || "-";
+  return `${d}/${m}/${y}`;
+}
+
+/**
  * Card fixo (sticky) que exibe o resumo da solicitação de relatório.
  * Mostra contagem de métricas, datas e botão de download.
- * 
+ *
  * @component
  */
 export default function SummaryCard({
@@ -49,16 +61,18 @@ export default function SummaryCard({
             {selectedCount}
           </span>
         </div>
+
         <div className="flex justify-between items-center">
           <span className="text-muted-foreground">Data Início:</span>
           <span className="font-medium text-muted-foreground">
-            {new Date(dateRange.start).toLocaleDateString("pt-BR")}
+            {formatDateBR(dateRange.start)}
           </span>
         </div>
+
         <div className="flex justify-between items-center">
           <span className="text-muted-foreground">Data Fim:</span>
           <span className="font-medium text-muted-foreground">
-            {new Date(dateRange.end).toLocaleDateString("pt-BR")}
+            {formatDateBR(dateRange.end)}
           </span>
         </div>
       </div>
@@ -88,3 +102,4 @@ export default function SummaryCard({
     </div>
   );
 }
+

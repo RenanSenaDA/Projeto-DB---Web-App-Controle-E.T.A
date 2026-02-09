@@ -6,6 +6,23 @@ import { Filter, X } from "lucide-react";
 import type { KPIData } from "@/types/kpi";
 
 /**
+ * Exibe apenas o "nome" do KPI, removendo o prefixo de estação/categoria.
+ * Ex: "eta/operacional/Fluxo Alimentação M3/h" -> "Fluxo Alimentação M3/h"
+ */
+function displayKpiName(label: string) {
+  const raw = String(label || "").trim();
+  const parts = raw
+    .split("/")
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  // esperado: <estacao>/<categoria>/<nome...>
+  if (parts.length <= 2) return raw;
+
+  return parts.slice(2).join("/");
+}
+
+/**
  * Propriedades do Filtro de Séries de KPI.
  */
 interface KpiFilterProps {
@@ -22,7 +39,7 @@ interface KpiFilterProps {
 /**
  * Componente para filtrar visualização de séries temporais.
  * Exibe badges interativos para cada KPI disponível e botão de limpeza.
- * 
+ *
  * @component
  */
 export default function KpiSeriesFilter({
@@ -43,7 +60,7 @@ export default function KpiSeriesFilter({
             ({selectedFilters.length} selecionados)
           </span>
         </div>
-        
+
         {selectedFilters.length > 0 && (
           <Button
             variant="ghost"
@@ -60,21 +77,23 @@ export default function KpiSeriesFilter({
       <div className="flex flex-wrap gap-2">
         {allKpis.map((kpi) => {
           const isSelected = selectedFilters.includes(kpi.id);
-          
+
           return (
             <Badge
               key={kpi.id}
               variant={isSelected ? "default" : "outline"}
+              title={kpi.label} // tooltip com o caminho completo
               className={`
                 cursor-pointer transition-all py-1.5 px-3 text-sm font-normal
-                ${isSelected 
-                  ? "hover:bg-primary/90 shadow-sm" 
-                  : "hover:bg-accent hover:text-accent-foreground text-muted-foreground border-dashed"
+                ${
+                  isSelected
+                    ? "hover:bg-primary/90 shadow-sm"
+                    : "hover:bg-accent hover:text-accent-foreground text-muted-foreground border-dashed"
                 }
               `}
               onClick={() => toggleFilter(kpi.id)}
             >
-              {kpi.label}
+              {displayKpiName(kpi.label)}
             </Badge>
           );
         })}

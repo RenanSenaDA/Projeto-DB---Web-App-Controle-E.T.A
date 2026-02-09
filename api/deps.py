@@ -6,20 +6,20 @@ Contém funções para injeção de dependência, como obtenção do usuário at
 
 from fastapi import Header, HTTPException, Depends
 from sqlalchemy import text
-from database.connection import get_engine    
+from database.connection import get_engine
 
 def get_current_user(authorization: str = Header(None)):
     """
     Dependência para validar o token de autenticação e obter o ID do usuário.
-    
+
     Espera um cabeçalho Authorization no formato "Bearer dummy-{user_id}-timestamp".
-    
+
     Args:
         authorization (str, optional): Cabeçalho Authorization.
-        
+
     Returns:
         int: ID do usuário autenticado.
-        
+
     Raises:
         HTTPException: Se o token for ausente, inválido ou malformado.
     """
@@ -37,13 +37,13 @@ def get_current_user(authorization: str = Header(None)):
 def get_current_admin(user_id: int = Depends(get_current_user)):
     """
     Dependência para garantir que o usuário atual tenha privilégios de administrador.
-    
+
     Args:
         user_id (int): ID do usuário obtido via get_current_user.
-        
+
     Returns:
         int: ID do administrador confirmado.
-        
+
     Raises:
         HTTPException: Se o usuário não tiver permissão de administrador.
     """

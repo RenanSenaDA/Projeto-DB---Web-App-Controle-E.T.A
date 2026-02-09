@@ -44,10 +44,33 @@ function deriveStyles(colorClass?: string): StyleTriplet {
 }
 
 /**
+ * Encurta o label exibido no card.
+ * - Se vier "eta/operacional/..." remove os 2 primeiros níveis (aba + categoria)
+ * - Se vier "ETA OPERACIONAL - ..." remove o prefixo antes de " - "
+ */
+function shortLabel(label: string) {
+  const raw = String(label ?? "").trim();
+  if (!raw) return "";
+
+  if (raw.includes("/")) {
+    const parts = raw.split("/").filter(Boolean);
+    if (parts.length >= 3) {
+      return parts.slice(2).join(" / ");
+    }
+    return parts[parts.length - 1] || raw;
+  }
+
+  const idx = raw.indexOf(" - ");
+  if (idx >= 0) return raw.slice(idx + 3).trim();
+
+  return raw.replaceAll("_", " ");
+}
+
+/**
  * Componente Card de KPI.
  * Exibe o valor atual, unidade, limite e status de uma métrica.
  * Visualiza alertas se o valor exceder o limite configurado.
- * 
+ *
  * @component
  */
 export default function KPICard({
@@ -77,7 +100,7 @@ export default function KPICard({
     >
       <CardHeader className="flex items-start justify-between pb-2 space-y-0">
         <CardTitle className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-          {label}
+          {shortLabel(label)}
         </CardTitle>
 
         {aboveLimit && (

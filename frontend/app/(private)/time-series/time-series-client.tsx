@@ -7,7 +7,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/ui/select"; // Verifique se o caminho está correto para seu projeto (ex: @/components/ui/select)
+} from "@/ui/select";
+
 import Error from "@/components/feedback/error";
 import PageHeader from "@/components/header-page";
 import Loading from "@/components/feedback/loading";
@@ -28,13 +29,21 @@ interface TimeSeriesClientProps {
 }
 
 /**
- * Componente Cliente de Séries Temporais.
- * Permite visualizar gráficos históricos de KPIs, filtrar por métrica e intervalo de tempo.
- * Gerencia a complexidade de UI através do useTimeSeriesViewModel.
+ * Exibe apenas o "nome" do KPI, removendo o prefixo de estação/categoria.
+ * Ex: "eta/operacional/Fluxo Alimentação M3/h" -> "Fluxo Alimentação M3/h"
  */
-export default function TimeSeriesClient({
-  initialData,
-}: TimeSeriesClientProps) {
+function displayKpiName(label: string) {
+  const raw = String(label || "").trim();
+  const parts = raw
+    .split("/")
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  if (parts.length <= 2) return raw;
+  return parts.slice(2).join("/");
+}
+
+export default function TimeSeriesClient({ initialData }: TimeSeriesClientProps) {
   const {
     loading,
     error,
@@ -50,15 +59,13 @@ export default function TimeSeriesClient({
     toggleFilter,
     clearFilters,
     noSeries,
-    allKpis,
     categoryMap,
     data,
     getSeriesForKpi,
   } = useTimeSeriesViewModel(initialData);
 
   if (loading) return <Loading />;
-  if (error)
-    return <Error error={error} fetchData={fetchData || refreshSeries} />;
+  if (error) return <Error error={error} fetchData={fetchData || refreshSeries} />;
 
   const renderSeries = (kpis: KPIData[]) => {
     const filtered = selectedFilters.length
@@ -68,7 +75,12 @@ export default function TimeSeriesClient({
     return filtered.map((kpi) => (
       <KpiSeriesCard
         key={kpi.id}
-        kpi={{ ...kpi, value: kpi.value ?? null, unit: kpi.unit ?? "" }}
+        kpi={{
+          ...kpi,
+          label: displayKpiName(kpi.label),
+          value: kpi.value ?? null,
+          unit: kpi.unit ?? "",
+        }}
         timeSeries={getSeriesForKpi(kpi.id)}
       />
     ));
@@ -80,7 +92,6 @@ export default function TimeSeriesClient({
         title="Séries Temporais de KPIs"
         subtitle="Visualize a evolução dos indicadores por estação"
       >
-        {/* Container do Select com estilo de "Input Group" */}
         <div className="flex items-center gap-2 bg-card p-1 pr-3 rounded-lg border shadow-sm transition-colors">
           <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider pl-3">
             Período:
@@ -108,34 +119,38 @@ export default function TimeSeriesClient({
         <EmptyState
           title="Nenhum dado encontrado"
           description="Não encontramos leituras para o período selecionado. Tente aumentar o intervalo de tempo ou limpar os filtros."
-          actionLabel={
-            selectedFilters.length > 0 ? "Limpar Filtros" : undefined
-          }
+          actionLabel={selectedFilters.length > 0 ? "Limpar Filtros" : undefined}
           onAction={selectedFilters.length > 0 ? clearFilters : undefined}
         />
       ) : (
-        <>
-          <KpiSeriesFilter
-            allKpis={allKpis}
-            selectedFilters={selectedFilters}
-            toggleFilter={toggleFilter}
-            clearFilters={clearFilters}
-          />
+        <Tabs
+          value={selectedStation}
+          className="w-full"
+          onValueChange={(value) => {
+            // troca de estação -> limpa filtros para não “misturar” kpis iguais
+            clearFilters();
+            setActiveStation(value as string);
+          }}
+        >
+          {/* 1) Tabs primeiro (como você pediu) */}
+          <TabsListStation stations={stationsList} />
 
-          <Tabs
-            value={selectedStation}
-            className="w-full mb-4"
-            onValueChange={(value) => setActiveStation(value as string)}
-          >
-            <TabsListStation stations={stationsList} />
+          {/* 2) Filtro e gráficos POR ESTAÇÃO */}
+          {stationKeys.map((key) => {
+            const stationKpis = data?.data?.[key]?.kpis ?? [];
 
-            {stationKeys.map((key) => (
-              <TabsContent key={key} value={key}>
+            return (
+              <TabsContent key={key} value={key} className="mt-6">
+                {/* Filtro agora recebe SOMENTE os KPIs da estação ativa */}
+                <KpiSeriesFilter
+                  allKpis={stationKpis}
+                  selectedFilters={selectedFilters}
+                  toggleFilter={toggleFilter}
+                  clearFilters={clearFilters}
+                />
+
                 {Object.entries(categoryMap).map(([category, config]) => {
-                  const stationKpis = data?.data?.[key]?.kpis ?? [];
-                  const sectionItems = stationKpis.filter(
-                    (k) => k.category === category
-                  );
+                  const sectionItems = stationKpis.filter((k) => k.category === category);
                   if (!sectionItems.length) return null;
 
                   return (
@@ -151,9 +166,9 @@ export default function TimeSeriesClient({
                   );
                 })}
               </TabsContent>
-            ))}
-          </Tabs>
-        </>
+            );
+          })}
+        </Tabs>
       )}
     </div>
   );

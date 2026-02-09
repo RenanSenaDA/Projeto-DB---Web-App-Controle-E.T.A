@@ -31,3 +31,6 @@ db/
 node_modules/
 
 .trae/
+# editor backups
+*.save
+*.fixbak

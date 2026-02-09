@@ -7,16 +7,30 @@ interface DateRange {
 }
 
 /**
+ * Retorna a data de hoje em formato YYYY-MM-DD usando horário LOCAL (sem UTC),
+ * evitando o bug de "voltar 1 dia" por timezone.
+ */
+function getTodayDateOnly(): string {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/**
  * ViewModel para a geração de Relatórios.
  * Gerencia o estado do formulário de seleção (KPIs, datas, expansão de acordeão).
  * Puramente gerenciamento de estado local (UI), sem chamadas de API diretas.
  */
 export default function useReportViewModel() {
   const [selectedKpis, setSelectedKpis] = useState<string[]>([]);
-  const [dateRange, setDateRange] = useState<DateRange>({
-    start: new Date().toISOString().split("T")[0],
-    end: new Date().toISOString().split("T")[0],
+
+  const [dateRange, setDateRange] = useState<DateRange>(() => {
+    const today = getTodayDateOnly();
+    return { start: today, end: today };
   });
+
   const [expandedSystems, setExpandedSystems] = useState<string[]>([]);
 
   // Alterna seleção de uma única KPI
@@ -43,6 +57,21 @@ export default function useReportViewModel() {
     });
   }, []);
 
+  const setStartDate = useCallback((date: string) => {
+    setDateRange((prev) => ({ ...prev, start: date }));
+  }, []);
+
+  const setEndDate = useCallback((date: string) => {
+    setDateRange((prev) => ({ ...prev, end: date }));
+  }, []);
+
+  const clearAll = useCallback(() => {
+    setSelectedKpis([]);
+    setExpandedSystems([]);
+    const today = getTodayDateOnly();
+    setDateRange({ start: today, end: today });
+  }, []);
+
   return {
     selectedKpis,
     dateRange,
@@ -50,15 +79,8 @@ export default function useReportViewModel() {
     setExpandedSystems,
     toggleKpi,
     toggleSystemAll,
-    setStartDate: (date: string) =>
-      setDateRange((prev) => ({ ...prev, start: date })),
-    setEndDate: (date: string) =>
-      setDateRange((prev) => ({ ...prev, end: date })),
-    clearAll: () => {
-      setSelectedKpis([]);
-      setExpandedSystems([]);
-      const today = new Date().toISOString().split("T")[0];
-      setDateRange({ start: today, end: today });
-    },
+    setStartDate,
+    setEndDate,
+    clearAll,
   };
 }

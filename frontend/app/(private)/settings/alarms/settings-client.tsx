@@ -19,11 +19,28 @@ interface LimitsClientProps {
 }
 
 /**
+ * Exibe apenas o "nome" do KPI, removendo o prefixo de estação/categoria.
+ * Ex: "eta/operacional/Fluxo Alimentação M3/h" -> "Fluxo Alimentação M3/h"
+ */
+function displayKpiName(label: string) {
+  const raw = String(label || "").trim();
+  const parts = raw
+    .split("/")
+    .map((p) => p.trim())
+    .filter(Boolean);
+
+  // esperado: <estacao>/<categoria>/<nome...>
+  if (parts.length <= 2) return raw;
+
+  return parts.slice(2).join("/");
+}
+
+/**
  * Componente Cliente de Configurações.
  * Permite ajustar limites de alarme para cada KPI e ativar/desativar alarmes globais.
  * Usa useLimitsViewModel para lógica de persistência e feedback.
  */
-export default function LimitsClient({ initialData }: LimitsClientProps) {        
+export default function LimitsClient({ initialData }: LimitsClientProps) {
   const {
     loading,
     error,
@@ -40,7 +57,7 @@ export default function LimitsClient({ initialData }: LimitsClientProps) {
     saveLimit,
     toggleAlarms,
     getKPIsForStationAndCategory,
-  } = useLimitsViewModel  (initialData);
+  } = useLimitsViewModel(initialData);
 
   if (loading) return <Loading />;
   if (error) return <p className="text-red-500 p-6">Erro ao carregar dados.</p>;
@@ -119,8 +136,11 @@ export default function LimitsClient({ initialData }: LimitsClientProps) {
                         className="group p-4 bg-card hover:bg-muted/50 transition-colors rounded-xl border border-border flex flex-col sm:flex-row gap-4 justify-between items-center"
                       >
                         <div className="flex-1 w-full text-left">
-                          <p className="font-semibold text-foreground">
-                            {kpi.label}
+                          <p
+                            className="font-semibold text-foreground"
+                            title={kpi.label} // tooltip com a tag completa
+                          >
+                            {displayKpiName(kpi.label)}
                           </p>
                           <div className="flex items-center gap-2 mt-1">
                             <span className="text-xs font-medium text-muted-foreground uppercase">
@@ -144,7 +164,7 @@ export default function LimitsClient({ initialData }: LimitsClientProps) {
                               }
                             />
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
-                              Max
+                              Máx
                             </span>
                           </div>
 
@@ -188,3 +208,4 @@ export default function LimitsClient({ initialData }: LimitsClientProps) {
     </div>
   );
 }
+

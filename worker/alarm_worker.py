@@ -1,7 +1,9 @@
 import os
 import time
+import re
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import psycopg2
 from psycopg2.extras import RealDictCursor
@@ -11,10 +13,12 @@ from alerts_whatsapp import enviar_alerta_whatsapp
 
 from dotenv import load_dotenv, find_dotenv
 
-# tenta achar um .env padrão no PATH
+# =====================================================================
+# Carregamento de .env (compatível com seu ambiente)
+# =====================================================================
+
 load_dotenv(find_dotenv())
 
-# tenta também caminhos relativos ao arquivo deste worker
 _base_dir = Path(__file__).resolve().parent
 for extra in [
     _base_dir / ".env",
@@ -25,285 +29,207 @@ for extra in [
     if extra.exists():
         load_dotenv(extra, override=False)
 
+# =====================================================================
+# DB / CONFIG
+# =====================================================================
 
 def get_db_url() -> str:
-    """
-    Monta a URL do Postgres.
-
-    - Se DATABASE_URL existir, usa ela.
-    - Caso contrário, monta a partir de DB_HOST/DB_PORT/POSTGRES_DB/POSTGRES_USER/POSTGRES_PASSWORD.
-    """
     url = os.getenv("DATABASE_URL", "").strip()
     if url:
         return url
 
-    host = os.getenv("DB_HOST") or os.getenv("PGHOST", "localhost")
-    port = os.getenv("DB_PORT") or os.getenv("PGPORT", "5432")
-    user = os.getenv("POSTGRES_USER") or os.getenv("PGUSER", "postgres")
-    pwd = os.getenv("POSTGRES_PASSWORD") or os.getenv("PGPASSWORD", "postgres")
-    db = os.getenv("POSTGRES_DB") or os.getenv("PGDATABASE", "eta")
+    host = os.getenv("DB_HOST", "localhost")
+    port = os.getenv("DB_PORT", "5432")
+    user = os.getenv("POSTGRES_USER", "postgres")
+    pwd = os.getenv("POSTGRES_PASSWORD", "postgres")
+    db = os.getenv("POSTGRES_DB", "eta")
 
     return f"postgresql://{user}:{pwd}@{host}:{port}/{db}"
 
 
 DB_URL = get_db_url()
 
-# Tabela de status global (DEVE ser a MESMA do backend/API).
-# Padrão recomendado: eta.config_sistema
-CONFIG_SISTEMA_TABLE = (os.getenv("CONFIG_SISTEMA_TABLE", "eta.config_sistema") or "").strip()
-if not CONFIG_SISTEMA_TABLE:
-    CONFIG_SISTEMA_TABLE = "eta.config_sistema"
+CONFIG_SISTEMA_TABLE = (os.getenv("CONFIG_SISTEMA_TABLE", "eta.config_sistema") or "").strip() or "eta.config_sistema"
+COOLDOWN_MINUTES = int(os.getenv("ALERT_EMAIL_COOLDOWN_MIN", "10"))
 
-# =====================================================================
-# CONFIG GERAL
-# =====================================================================
-
-COOLDOWN_MINUTES = 10
+# cooldown por TAG EXATA
 ultimo_disparo: dict[str, datetime] = {}
 
-LIMITES_POR_TIPO_DEFAULT: dict[str, float] = {
-    "ph": 7.0,
-    "pressao": 5.0,
-    "turbidez": 10.0,
-    "cloro": 400.0,
-    "vazao": 300.0,
-    "nivel": 22000.0,
-}
-
-NOMES_TIPO = {
-    "ph": "pH",
-    "pressao": "Pressão",
-    "turbidez": "Turbidez",
-    "cloro": "Cloro",
-    "vazao": "Vazão",
-    "nivel": "Nível do Reservatório",
-}
-
-TIPO_LIMITE_ACIMA = "ACIMA"
-TIPO_LIMITE_ABAIXO = "ABAIXO"
-
-TIPO_LIMITE_POR_TIPO: dict[str, str] = {
-    "ph": TIPO_LIMITE_ACIMA,
-    "pressao": TIPO_LIMITE_ACIMA,
-    "turbidez": TIPO_LIMITE_ACIMA,
-    "cloro": TIPO_LIMITE_ACIMA,
-    "vazao": TIPO_LIMITE_ACIMA,
-    "nivel": TIPO_LIMITE_ACIMA,
-}
-
-
-def normalizar_tipo_limite(raw: str | None) -> str:
-    if not raw:
-        return TIPO_LIMITE_ACIMA
-    raw_up = str(raw).strip().upper()
-    if raw_up in ("ACIMA", "SUPERIOR", "MAIOR", ">"):
-        return TIPO_LIMITE_ACIMA
-    if raw_up in ("ABAIXO", "INFERIOR", "MENOR", "<"):
-        return TIPO_LIMITE_ABAIXO
-    return TIPO_LIMITE_ACIMA
-
-
-def compara_valor_com_limite(valor_atual, limite, tipo_limite_str: str) -> bool:
-    tipo_limite = normalizar_tipo_limite(tipo_limite_str)
-    try:
-        v = float(valor_atual)
-        lim = float(limite)
-    except (TypeError, ValueError):
-        return False
-
-    if tipo_limite == TIPO_LIMITE_ACIMA:
-        return v > lim
-    if tipo_limite == TIPO_LIMITE_ABAIXO:
-        return v < lim
-    return False
-
-
-def montar_mensagem_extra(
-    nome_parametro: str,
-    tag_original: str | None,
-    valor_atual,
-    limite,
-    tipo_limite_str: str,
-) -> str:
-    tipo_limite = normalizar_tipo_limite(tipo_limite_str)
-    direcao = "ACIMA" if tipo_limite == TIPO_LIMITE_ACIMA else "ABAIXO"
-
-    try:
-        valor_fmt = f"{float(valor_atual):.2f}"
-    except (TypeError, ValueError):
-        valor_fmt = str(valor_atual)
-
-    try:
-        limite_fmt = f"{float(limite):.2f}"
-    except (TypeError, ValueError):
-        limite_fmt = str(limite)
-
-    tag_info = f"Tag original: {tag_original}. " if tag_original else ""
-
-    return (
-        f"{tag_info}"
-        f"Parâmetro: {nome_parametro}. "
-        f"Valor atual: {valor_fmt}. Limite configurado: {limite_fmt}. "
-        f"Condição do alarme: DISPARAR quando o valor estiver {direcao} do limite."
-    )
-
-
 # =====================================================================
-# FUNÇÕES AUXILIARES
+# Utilitários
 # =====================================================================
 
 def db_connect():
-    if not DB_URL:
-        raise RuntimeError("URL do banco não foi definida.")
-    conn = psycopg2.connect(DB_URL, cursor_factory=RealDictCursor)
-    return conn
+    return psycopg2.connect(DB_URL, cursor_factory=RealDictCursor)
 
 
-def ensure_config_sistema_row() -> None:
-    """
-    Garante que exista (id=1) em CONFIG_SISTEMA_TABLE.
-    """
+def ensure_config_sistema_row():
     try:
         conn = db_connect()
         cur = conn.cursor()
-        cur.execute(f"SELECT id FROM {CONFIG_SISTEMA_TABLE} WHERE id=1;")
-        row = cur.fetchone()
-        if not row:
+        cur.execute(f"SELECT id FROM {CONFIG_SISTEMA_TABLE} WHERE id = 1;")
+        if not cur.fetchone():
             cur.execute(
-                f"INSERT INTO {CONFIG_SISTEMA_TABLE}(id, alarms_enabled, updated_at) "
-                f"VALUES (1, FALSE, now());"
+                f"""
+                INSERT INTO {CONFIG_SISTEMA_TABLE}(id, alarms_enabled, updated_at)
+                VALUES (1, FALSE, now());
+                """
             )
             conn.commit()
         cur.close()
         conn.close()
     except Exception as e:
-        print("[ALARM WORKER] Falha ao garantir config_sistema row:", e)
+        print("[ALARM WORKER] Erro ao garantir config_sistema:", e)
 
 
 def is_alarms_enabled() -> bool:
-    """
-    Fonte ÚNICA de verdade: eta.config_sistema.alarms_enabled (id=1).
-    Fail-safe: se der erro, assume False (evita spam).
-    """
     try:
         conn = db_connect()
         cur = conn.cursor()
-        cur.execute(f"SELECT alarms_enabled FROM {CONFIG_SISTEMA_TABLE} WHERE id=1;")
+        cur.execute(f"SELECT alarms_enabled FROM {CONFIG_SISTEMA_TABLE} WHERE id = 1;")
         row = cur.fetchone()
         cur.close()
         conn.close()
 
-        enabled = bool(row["alarms_enabled"]) if row and "alarms_enabled" in row else False
+        enabled = bool(row["alarms_enabled"]) if row else False
         print(f"[ALARM WORKER] alarms_enabled (DB) = {enabled}")
         return enabled
-
     except Exception as e:
-        print("[ALARM WORKER] Falha ao consultar alarms_enabled no DB. Bloqueando envio (fail-safe). Erro:", e)
+        print("[ALARM WORKER] Falha ao ler alarms_enabled. Fail-safe OFF.", e)
         return False
 
 
-def get_last_measurements():
+def tag_key(tag: str | None) -> str:
+    return (tag or "").strip().lower()
+
+
+def should_trigger(key: str) -> bool:
+    now = datetime.now(timezone.utc)
+    last = ultimo_disparo.get(key)
+    if last is None:
+        return True
+    return (now - last) >= timedelta(minutes=COOLDOWN_MINUTES)
+
+
+def register_trigger(key: str):
+    ultimo_disparo[key] = datetime.now(timezone.utc)
+
+
+def format_ts_local(ts):
+    tz_name = os.getenv("TZ", "America/Fortaleza")
+    tz = ZoneInfo(tz_name)
+
+    if ts is None:
+        return datetime.now(tz).strftime("%d/%m/%Y %H:%M")
+
+    if ts.tzinfo is None:
+        ts = ts.replace(tzinfo=timezone.utc)
+
+    return ts.astimezone(tz).strftime("%d/%m/%Y %H:%M")
+
+
+PREFIX_LABEL = {
+    "eta": "ETA",
+    "uf": "Ultrafiltração",
+    "utf": "Ultrafiltração",
+    "fc": "Carvão",
+    "carvao": "Carvão",
+}
+
+def fallback_pretty_name(tag: str) -> str:
+    """
+    Fallback caso não exista label no DB.
+    """
+    t = (tag or "").strip()
+    parts = [p.strip() for p in t.split("/") if p.strip()]
+    if len(parts) < 2:
+        return t
+
+    prefix = parts[0].lower()
+    area = parts[1].title()
+    nome = " / ".join(parts[2:]) if len(parts) > 2 else ""
+
+    prefix_label = PREFIX_LABEL.get(prefix, parts[0].upper())
+
+    nome = (
+        nome.replace("M3/h", "m³/h")
+            .replace("M3/dia", "m³/dia")
+            .replace("M3/d", "m³/d")
+    )
+    nome = re.sub(r"\s+", " ", nome).strip()
+
+    if nome:
+        return f"{prefix_label} • {area} • {nome}"
+    return f"{prefix_label} • {area}"
+
+
+def resolve_display_name(tag: str, label: str | None) -> str:
+    """
+    Nome amigável:
+      - Se label existir e não estiver vazio -> usa label
+      - Senão -> fallback bonito derivado da tag
+    """
+    if label and str(label).strip():
+        return str(label).strip()
+    return fallback_pretty_name(tag)
+
+
+def montar_mensagem_extra(tag_original: str, valor_atual: float, limite: float) -> str:
+    return (
+        f"TAG: {tag_original}\n"
+        f"Condição: valor acima do limite configurado ({valor_atual:.2f} > {limite:.2f})."
+    )
+
+
+# =====================================================================
+# Query principal: última medição + limite + label
+# =====================================================================
+
+def get_last_measurements_with_limits_and_label():
     query = """
         SELECT
             s.id AS sensor_id,
-            COALESCE(m.tag, s.meta->>'tag', s.tag) AS tag,
+            COALESCE(m.tag, m.meta->>'tag', s.tag) AS tag,
             m.value,
-            m.ts
+            m.ts,
+            cl.limite,
+            cl.label
         FROM eta.sensor s
         JOIN LATERAL (
-            SELECT m2.tag, m2.value, m2.ts
+            SELECT m2.tag, m2.value, m2.ts, m2.meta
             FROM eta.measurement m2
             WHERE m2.sensor_id = s.id
             ORDER BY m2.ts DESC
             LIMIT 1
         ) m ON TRUE
+        LEFT JOIN eta.config_limites cl
+            ON cl.tag = COALESCE(m.tag, m.meta->>'tag', s.tag)
         ORDER BY s.id;
     """
-
     conn = db_connect()
     cur = conn.cursor()
     cur.execute(query)
     rows = cur.fetchall()
     cur.close()
     conn.close()
-
     return rows
 
 
-def normalizar_tipo(tag_original: str | None) -> str | None:
-    if not tag_original:
-        return None
-    tl = tag_original.lower().strip()
-    if "ph" in tl:
-        return "ph"
-    if "pressao" in tl or "pressão" in tl:
-        return "pressao"
-    if "turbidez" in tl:
-        return "turbidez"
-    if "cloro" in tl:
-        return "cloro"
-    if "vazao" in tl or "vazão" in tl:
-        return "vazao"
-    if "nivel" in tl or "nível" in tl:
-        return "nivel"
-    return None
-
-
-def should_trigger(tipo: str) -> bool:
-    agora = datetime.now(timezone.utc)
-    last = ultimo_disparo.get(tipo)
-    if last is None:
-        return True
-    return (agora - last) >= timedelta(minutes=COOLDOWN_MINUTES)
-
-
-def register_trigger(tipo: str):
-    ultimo_disparo[tipo] = datetime.now(timezone.utc)
-
-
-def load_limits_from_db() -> dict[str, float]:
-    try:
-        conn = db_connect()
-        cur = conn.cursor()
-        cur.execute("SELECT tag, limite FROM eta.config_limites;")
-        rows = cur.fetchall()
-        cur.close()
-        conn.close()
-    except Exception as e:
-        print("[ALARM WORKER] Erro ao carregar eta.config_limites:", e)
-        return {}
-
-    limits: dict[str, float] = {}
-    for r in rows:
-        tag = r.get("tag")
-        limite = r.get("limite")
-        if tag is None or limite is None:
-            continue
-        try:
-            limits[tag] = float(limite)
-        except (TypeError, ValueError):
-            continue
-
-    return limits
-
-
 # =====================================================================
-# LOOP PRINCIPAL
+# Loop
 # =====================================================================
 
 def check_alerts():
     print("\n[ALARM WORKER] Verificando sensores...")
 
     if not is_alarms_enabled():
-        print("[ALARM WORKER] Alarmes DESATIVADOS. Não envia nada.")
+        print("[ALARM WORKER] Alarmes desativados.")
         return
 
-    limits_por_tag = load_limits_from_db()
-
     try:
-        rows = get_last_measurements()
+        rows = get_last_measurements_with_limits_and_label()
     except Exception as e:
-        print("[ALARM WORKER] Erro ao buscar últimas medições:", e)
+        print("[ALARM WORKER] Erro ao buscar medições:", e)
         return
 
     if not rows:
@@ -312,85 +238,77 @@ def check_alerts():
 
     for r in rows:
         sensor_id = r.get("sensor_id")
-        tag_original = r.get("tag")
+        tag = (r.get("tag") or "").strip()
         value = r.get("value")
         ts = r.get("ts")
+        limite = r.get("limite")
+        label = r.get("label")
 
-        tipo = normalizar_tipo(tag_original)
-        if tipo is None:
-            print(f"[DEBUG] sensor_id={sensor_id}, tag={tag_original} -> tipo não mapeado")
+        # Sem limite cadastrado => sem alarme configurado para essa KPI
+        if limite is None:
+            print(f"[DEBUG] sensor_id={sensor_id}, tag={tag} -> sem limite em config_limites (ignorado).")
             continue
 
-        limite_config_tag = None
-        origem_limite = "DEFAULT_POR_TIPO"
-
-        if tag_original in limits_por_tag:
-            limite_config_tag = limits_por_tag[tag_original]
-            origem_limite = f"DB (tag={tag_original})"
-        else:
-            for tag_cfg, lim_cfg in limits_por_tag.items():
-                if normalizar_tipo(tag_cfg) == tipo:
-                    limite_config_tag = lim_cfg
-                    origem_limite = f"DB (por tipo tag={tag_cfg})"
-                    break
-
-        limite = limite_config_tag if limite_config_tag is not None else LIMITES_POR_TIPO_DEFAULT.get(tipo)
-        if limite is None or value is None:
+        if value is None:
+            print(f"[DEBUG] sensor_id={sensor_id}, tag={tag} -> value None (ignorado).")
             continue
 
-        tipo_limite_config = TIPO_LIMITE_POR_TIPO.get(tipo, TIPO_LIMITE_ACIMA)
-        pode_disparar = should_trigger(tipo)
-        condicao_alarme = compara_valor_com_limite(value, limite, tipo_limite_config)
+        try:
+            v = float(value)
+            lim = float(limite)
+        except Exception:
+            print(f"[DEBUG] sensor_id={sensor_id}, tag={tag} -> value/limite inválido (ignorado).")
+            continue
+
+        key = tag_key(tag)
+        condicao = v > lim
+        cooldown_ok = should_trigger(key)
 
         print(
-            f"[DEBUG] sensor_id={sensor_id}, tag={tag_original}, tipo={tipo}, "
-            f"value={value}, limite={limite} (origem={origem_limite}), "
-            f"condicao={condicao_alarme}, cooldown_ok={pode_disparar}"
+            f"[DEBUG] sensor_id={sensor_id}, tag={tag}, label={label}, "
+            f"value={v}, limite={lim}, condicao={condicao}, cooldown_ok={cooldown_ok}"
         )
 
-        if condicao_alarme and pode_disparar:
-            nome = NOMES_TIPO.get(tipo, tipo)
-            msg_extra = montar_mensagem_extra(
-                nome_parametro=nome,
-                tag_original=tag_original,
-                valor_atual=value,
-                limite=limite,
-                tipo_limite_str=tipo_limite_config,
-            )
+        if condicao and cooldown_ok:
+            ts_fmt = format_ts_local(ts)
 
-            print(f"[ALERTA] Disparando {nome}: valor={value}, limite={limite}, ts={ts}")
+            nome_bonito = resolve_display_name(tag, label)
+            msg_extra = montar_mensagem_extra(tag_original=tag, valor_atual=v, limite=lim)
 
+            print(f"[ALERTA] Disparando: {nome_bonito} | TAG='{tag}' ({v} > {lim})")
+
+            # Email (mostra nome bonito, mas inclui TAG no texto)
             try:
-                ok_email = enviar_alerta_para_destinatarios_padrao(
-                    equipamento=nome,
-                    valor_kpi=f"{float(value):.2f}",
+                enviar_alerta_para_destinatarios_padrao(
+                    equipamento=nome_bonito,
+                    valor_kpi=f"{v:.2f}",
                     mensagem_extra=msg_extra,
                 )
-                print(f"[ALERTA-EMAIL] {nome}: {ok_email}")
             except Exception as e:
-                print("[ERRO EMAIL] ao enviar alerta:", e)
+                print("[ERRO EMAIL]", e)
 
+            # WhatsApp
             try:
-                ok_wpp = enviar_alerta_whatsapp(
-                    equipamento=nome,
-                    valor_kpi=f"{float(value):.2f}",
-                    limite=limite,
+                enviar_alerta_whatsapp(
+                    parametro=nome_bonito,
+                    valor_atual=v,
+                    limite=lim,
+                    timestamp_str=ts_fmt,
                 )
-                print(f"[ALERTA-WPP] {nome}: {ok_wpp}")
             except Exception as e:
-                print("[ERRO WPP] ao enviar alerta:", e)
+                print("[ERRO WPP]", e)
 
-            register_trigger(tipo)
+            register_trigger(key)
 
 
 def main_loop():
-    print(f"[ALARM WORKER] Motor de alarmes iniciado. Tabela de status: {CONFIG_SISTEMA_TABLE}. Loop 24/7...")
+    print(f"[ALARM WORKER] Worker iniciado. Tabela: {CONFIG_SISTEMA_TABLE}")
     ensure_config_sistema_row()
     while True:
         try:
             check_alerts()
         except Exception as e:
-            print("[ALARM WORKER] Erro inesperado no loop principal:", e)
+            print("[ALARM WORKER] Erro inesperado:", e)
         time.sleep(5)
 
 

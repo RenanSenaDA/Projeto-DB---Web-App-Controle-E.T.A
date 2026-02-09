@@ -1,47 +1,54 @@
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import useApi from "@/hooks/api/use-api";
+import type { ApiResponse, KPIData } from "@/types/kpi";
 import { buildCategoryMap } from "@/lib/utils";
-import type { ApiResponse } from "@/types/kpi";
+
+/**
+ * Labels exibidos nas tabs, mantendo as chaves internas (keys) sem acento.
+ */
+const STATION_LABELS: Record<string, string> = {
+  eta: "ETA",
+  ultrafiltracao: "ULTRAFILTRAÇÃO",
+  carvao: "CARVÃO",
+};
 
 /**
  * ViewModel para o Dashboard.
- * Responsável por processar os dados brutos da API e preparar as estruturas
- * necessárias para renderização das abas (estações) e seções (categorias).
- *
- * @param initialData - Dados iniciais (SSR) para hidratação
+ * Organiza KPIs por estação (tabs) e por categoria (seções).
  */
 export function useDashboardViewModel(initialData?: ApiResponse | null) {
-  // Hook de API base para buscar o payload principal
-  const { loading, error, getKPIs, data, fetchData } = useApi(initialData);
+  const { loading, error, data, fetchData } = useApi(initialData);
 
-  /**
-   * Filtra chaves de estações que possuem KPIs.
-   * Evita mostrar abas vazias.
-   */
   const stationKeys = useMemo(() => {
     return Object.keys(data?.data ?? {}).filter(
       (key) => (data?.data?.[key]?.kpis?.length ?? 0) > 0
     );
   }, [data]);
 
-  /**
-   * Lista formatada para o componente de Tabs.
-   */
   const stationsList = useMemo(() => {
     return stationKeys.map((key) => ({
       key,
-      label: key.toUpperCase(),
+      label: STATION_LABELS[key] ?? key.toUpperCase(),
     }));
   }, [stationKeys]);
 
-  /**
-   * Mapa de categorias (ex: "quimico" -> { label: "Químico", color: "blue" })
-   * Construído dinamicamente a partir dos dados.
-   */
-  const categoryMap = useMemo(() => buildCategoryMap(data), [data]);
-  
-  const lastUpdate = data?.meta.timestamp || "--:--:--";
-  const hasData = stationKeys.length > 0;
+  const categoryMap = useMemo(() => {
+    return data ? buildCategoryMap(data) : {};
+  }, [data]);
+
+  const hasData = useMemo(() => {
+    return stationKeys.length > 0;
+  }, [stationKeys]);
+
+  const getKPIs = useCallback(
+    (stationKey: string, categoryId: string): KPIData[] => {
+      return (
+        data?.data?.[stationKey]?.kpis?.filter((k) => k.category === categoryId) ??
+        []
+      );
+    },
+    [data]
+  );
 
   return {
     loading,
@@ -51,7 +58,6 @@ export function useDashboardViewModel(initialData?: ApiResponse | null) {
     stationKeys,
     stationsList,
     categoryMap,
-    lastUpdate,
     getKPIs,
     hasData,
   };

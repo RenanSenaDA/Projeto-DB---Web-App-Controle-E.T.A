@@ -20,6 +20,16 @@ function extractTagFromLabel(label: string): string {
 }
 
 /**
+ * Labels exibidos nas tabs, mantendo as chaves internas (keys) sem acento.
+ * Exibição (label) pode e deve conter acentuação.
+ */
+const STATION_LABELS: Record<string, string> = {
+  eta: "ETA",
+  ultrafiltracao: "ULTRAFILTRAÇÃO",
+  carvao: "CARVÃO",
+};
+
+/**
  * ViewModel para a página de Configurações de Limites.
  * Gerencia a edição de limites de KPIs e o status global de alarmes.
  */
@@ -44,7 +54,10 @@ export function useLimitsViewModel(initialData?: ApiResponse | null) {
   }, [data]);
 
   const stationsList = useMemo(() => {
-    return stationKeys.map((key) => ({ key, label: key.toUpperCase() }));
+    return stationKeys.map((key) => ({
+      key,
+      label: STATION_LABELS[key] ?? key.toUpperCase(),
+    }));
   }, [stationKeys]);
 
   const categoryMap = useMemo(() => {
@@ -97,7 +110,9 @@ export function useLimitsViewModel(initialData?: ApiResponse | null) {
 
       // Precisa converter o KPI "id" para TAG real do banco.
       // Pegamos o KPI pela lista e extraímos a tag do label.
-      const allKPIs = Object.values(data?.data ?? {}).flatMap((s) => s.kpis || []);
+      const allKPIs = Object.values(data?.data ?? {}).flatMap(
+        (s) => s.kpis || []
+      );
       const kpi = allKPIs.find((k) => k.id === id);
 
       if (!kpi) {

@@ -15,7 +15,9 @@ interface DateRangePickerProps {
 /**
  * Componente para seleção de período (data de início e fim).
  * Renderiza dois inputs nativos de data com estilização consistente.
- * 
+ * Trabalha exclusivamente com strings YYYY-MM-DD (date-only),
+ * evitando problemas de timezone.
+ *
  * @component
  */
 export default function DateRangePicker({
@@ -35,9 +37,12 @@ export default function DateRangePicker({
             type="date"
             value={start}
             onChange={(e) => onStartChange(e.target.value)}
-            className="w-full p-2.5 rounded-lg border border-input bg-muted/50 text-foreground focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+            className="w-full p-2.5 rounded-lg border border-input bg-muted/50 text-foreground
+                       focus:ring-2 focus:ring-primary focus:border-primary
+                       outline-none transition-all"
           />
         </div>
+
         <div className="space-y-2">
           <label className="text-sm font-medium text-muted-foreground">
             Data Final
@@ -46,7 +51,9 @@ export default function DateRangePicker({
             type="date"
             value={end}
             onChange={(e) => onEndChange(e.target.value)}
-            className="w-full p-2.5 rounded-lg border border-input bg-muted/50 text-foreground focus:ring-2 focus:ring-primary focus:border-primary outline-none transition-all"
+            className="w-full p-2.5 rounded-lg border border-input bg-muted/50 text-foreground
+                       focus:ring-2 focus:ring-primary focus:border-primary
+                       outline-none transition-all"
           />
         </div>
       </div>

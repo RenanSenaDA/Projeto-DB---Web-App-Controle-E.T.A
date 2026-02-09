@@ -8,6 +8,19 @@ services:
     ports:
       - "8000:8000"
     restart: unless-stopped
+    healthcheck:
+      # Healthcheck sem curl/wget, usando Python (já existe no container)
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/').read()"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
 
   frontend:
     build:
@@ -15,8 +28,16 @@ services:
       dockerfile: Dockerfile
     env_file:
       - ../streamlit/.env
+    environment:
+      # SSR dentro do Docker
+      - INTERNAL_API_URL=http://api:8000
+      # Browser fora do Docker
+      - NEXT_PUBLIC_API_URL=http://100.51.167.172:8000
+      # proteção básica
+      - NODE_OPTIONS=--max-old-space-size=512
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     ports:
       - "3000:3000"
     restart: unless-stopped
@@ -28,5 +49,6 @@ services:
     env_file:
       - ../streamlit/.env
     depends_on:
-      - api
+      api:
+        condition: service_healthy
     restart: unless-stopped
