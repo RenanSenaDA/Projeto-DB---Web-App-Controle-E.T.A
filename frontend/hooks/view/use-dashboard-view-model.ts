@@ -12,6 +12,16 @@ const STATION_LABELS: Record<string, string> = {
   carvao: "CARVÃO",
 };
 
+function inferCategoryFromLabel(label: any): string | null {
+  const raw = String(label ?? "").trim();
+  if (!raw.includes("/")) return null;
+
+  const parts = raw.split("/").filter(Boolean);
+  // esperado: ["eta", "operacional", "Fluxo ..."]
+  if (parts.length >= 2) return parts[1]; // categoria = 2º segmento
+  return null;
+}
+
 /**
  * ViewModel para o Dashboard.
  * Organiza KPIs por estação (tabs) e por categoria (seções).
@@ -42,10 +52,16 @@ export function useDashboardViewModel(initialData?: ApiResponse | null) {
 
   const getKPIs = useCallback(
     (stationKey: string, categoryId: string): KPIData[] => {
-      return (
-        data?.data?.[stationKey]?.kpis?.filter((k) => k.category === categoryId) ??
-        []
-      );
+      const list = data?.data?.[stationKey]?.kpis ?? [];
+
+      return list.filter((k) => {
+        // 1) caminho original (categoria já vem do backend)
+        if (k.category === categoryId) return true;
+
+        // 2) fallback: deriva categoria pelo label/tag (eta/operacional/...)
+        const inferred = inferCategoryFromLabel(k.label);
+        return inferred === categoryId;
+      });
     },
     [data]
   );

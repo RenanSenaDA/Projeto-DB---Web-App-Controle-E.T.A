@@ -21,6 +21,11 @@ services:
       timeout: 5s
       retries: 12
       start_period: 20s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
 
   frontend:
     build:
@@ -40,7 +45,26 @@ services:
         condition: service_healthy
     ports:
       - "3000:3000"
-    restart: unless-stopped
+    # Em 24/7, prefira ALWAYS para recuperar de travamentos/interrupções do runtime
+    restart: always
+    healthcheck:
+      # Healthcheck do Next sem curl/wget (Node já existe no container)
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "require('http').get('http://127.0.0.1:3000', r=>process.exit(r.statusCode===200?0:1)).on('error', ()=>process.exit(1))"
+        ]
+      interval: 15s
+      timeout: 5s
+      retries: 8
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
 
   worker:
     build:
@@ -52,3 +76,8 @@ services:
       api:
         condition: service_healthy
     restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"

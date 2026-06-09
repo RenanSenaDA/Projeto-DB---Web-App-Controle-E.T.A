@@ -16,6 +16,8 @@ import { NextResponse, type NextRequest } from "next/server";
 const publicRoutes = [
   { path: "/", whenAuthenticated: "redirect" },
   { path: "/login", whenAuthenticated: "redirect" },
+  // health deve ser público para monitoramento/healthcheck
+  { path: "/health", whenAuthenticated: "allow" },
 ] as const;
 
 const REDIRECT_WHEN_AUTHENTICATED_ROUTE = "/dashboard";
@@ -23,6 +25,12 @@ const REDIRECT_WHEN_NOT_AUTHENTICATED_ROUTE = "/login";
 
 export default function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname;
+
+  // libera health sempre (não depende de cookie)
+  if (path === "/health") {
+    return NextResponse.next();
+  }
+
   const publicRoute = publicRoutes.find((route) => route.path === path);
   const searchParams = request.nextUrl.searchParams;
   const token = searchParams.get("token");
@@ -62,7 +70,7 @@ export default function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
+    // Mantém exclusões padrão (api, _next, assets), e inclui health no fluxo do matcher
     "/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)",
   ],
 };
-

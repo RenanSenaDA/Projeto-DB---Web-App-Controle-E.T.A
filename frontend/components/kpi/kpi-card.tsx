@@ -67,6 +67,35 @@ function shortLabel(label: string) {
 }
 
 /**
+ * Identifica se o KPI é "Status do Filtro" (carvão) pelos labels FC100..FC103.
+ */
+function isFiltroCarvaoStatus(label: string) {
+  const t = String(label ?? "").toLowerCase();
+  return (
+    t.includes("status filtro fc100") ||
+    t.includes("status filtro fc101") ||
+    t.includes("status filtro fc102") ||
+    t.includes("status filtro fc103")
+  );
+}
+
+/**
+ * Converte o valor numérico do status do filtro em texto.
+ * 0 standby, 1 operação, 2 retrolavagem, 4 sanitização.
+ */
+function mapFiltroCarvaoStatus(raw: unknown): string {
+  const n = typeof raw === "number" ? raw : Number(raw);
+  switch (n) {
+    case 0: return "Standby";
+    case 1: return "Operação";
+    case 2: return "Retrolavagem";
+    case 4: return "Sanitização";
+    default:
+      return Number.isFinite(n) ? `Desconhecido (${n})` : "Desconhecido";
+  }
+}
+
+/**
  * Componente Card de KPI.
  * Exibe o valor atual, unidade, limite e status de uma métrica.
  * Visualiza alertas se o valor exceder o limite configurado.
@@ -83,12 +112,23 @@ export default function KPICard({
   colorClass,
 }: Omit<KPIData, "category"> & { className?: string; colorClass?: string }) {
   const styles = deriveStyles(colorClass)
+
+  const isStatus = isFiltroCarvaoStatus(label);
+
+  // Para status (enum), não faz sentido comparar com limite nem exibir unidade.
   const aboveLimit =
+    !isStatus &&
     value !== null &&
     value !== undefined &&
     limit !== null &&
     limit !== undefined &&
     Number(value) > Number(limit);
+
+  const displayValue = isStatus
+    ? mapFiltroCarvaoStatus(value)
+    : formatValue(value);
+
+  const displayUnit = isStatus ? null : unit;
 
   return (
     <Card
@@ -119,16 +159,19 @@ export default function KPICard({
             </span>
             <div className="flex items-baseline gap-1">
               <span className={cn("text-2xl font-bold tracking-tight", styles.text)}>
-                {formatValue(value)}
+                {displayValue}
               </span>
-              <span className="text-sm font-medium text-muted-foreground">
-                {unit}
-              </span>
+
+              {displayUnit && (
+                <span className="text-sm font-medium text-muted-foreground">
+                  {displayUnit}
+                </span>
+              )}
             </div>
           </div>
 
-          {/* Limite */}
-          {limit !== undefined && limit !== null && (
+          {/* Limite (somente para KPIs numéricos) */}
+          {!isStatus && limit !== undefined && limit !== null && (
             <div className="text-right">
               <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide block mb-1">
                 Limite

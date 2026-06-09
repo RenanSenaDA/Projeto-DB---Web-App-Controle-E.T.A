@@ -34,3 +34,4 @@ node_modules/
 # editor backups
 *.save
 *.fixbak
+*.save.1
