@@ -4,6 +4,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
+  Activity,
   BarChart2,
   BarChart3,
   BellRing,
@@ -51,6 +52,11 @@ const items = [
     title: "Alarmes",
     url: "/alarms",
     icon: BellRing,
+  },
+  {
+    title: "Saúde dos Sensores",
+    url: "/sensors-health",
+    icon: Activity,
   },
   {
     title: "Configurações",
