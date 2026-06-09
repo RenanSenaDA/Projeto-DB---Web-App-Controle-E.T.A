@@ -54,6 +54,10 @@ Edite o arquivo gerado em `versions/` e preencha `upgrade()` / `downgrade()` com
 `op.execute("... SQL ...")`. Prefira DDL reversível e teste antes de aplicar em
 produção.
 
+> **Sempre qualifique os objetos com o schema `eta`** (ex.: `eta.measurement`,
+> não apenas `measurement`). O `SET search_path` da baseline vale só para aquela
+> revisão; ele não persiste para as revisões seguintes, então não dependa dele.
+
 ## Deploy (fluxo do projeto)
 
 Editar localmente → commit → push → na EC2 `git pull` → rebuild do container da

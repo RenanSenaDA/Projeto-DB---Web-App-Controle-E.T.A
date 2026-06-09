@@ -14,7 +14,7 @@ import sys
 from logging.config import fileConfig
 
 from alembic import context
-from sqlalchemy import engine_from_config, pool
+from sqlalchemy import create_engine, pool
 
 # Garante que os módulos da app (database.connection, core.config) sejam
 # importáveis tanto rodando a partir de api/ (local) quanto de /app (container).
@@ -23,9 +23,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from database.connection import get_db_url  # noqa: E402
 
 config = context.config
-
-# Injeta a URL de conexão a partir da configuração da aplicação.
-config.set_main_option("sqlalchemy.url", get_db_url())
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
@@ -36,9 +33,10 @@ target_metadata = None
 
 def run_migrations_offline() -> None:
     """Modo offline: gera o SQL (`alembic upgrade head --sql`) sem conectar ao banco."""
-    url = config.get_main_option("sqlalchemy.url")
+    # A URL vem direto de get_db_url(); não passamos pelo ConfigParser do Alembic
+    # para evitar a interpolação de '%' (ex.: senha com '%' quebraria a leitura).
     context.configure(
-        url=url,
+        url=get_db_url(),
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -49,11 +47,8 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     """Modo online: conecta ao banco e aplica as migrações."""
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    # Engine criada direto de get_db_url() (sem ConfigParser -> '%' na senha é seguro).
+    connectable = create_engine(get_db_url(), poolclass=pool.NullPool)
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)
         with context.begin_transaction():

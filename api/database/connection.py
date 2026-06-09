@@ -4,6 +4,8 @@ Módulo de conexão com o banco de dados.
 Gerencia a criação da engine SQLAlchemy e formatação da URL de conexão.
 """
 
+import threading
+
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from core.config import settings
@@ -43,6 +45,7 @@ def get_db_url() -> str:
 # Antes era recriada a cada chamada de get_engine() (~18 call sites, às vezes 2x
 # por request), descartando o connection pool e podendo esgotar as conexões da RDS.
 _engine: Engine | None = None
+_engine_lock = threading.Lock()
 
 
 def get_engine() -> Engine:
@@ -50,12 +53,17 @@ def get_engine() -> Engine:
     Retorna a engine SQLAlchemy compartilhada, criando-a na primeira chamada.
 
     A engine (e seu connection pool) é reusada entre requests. SQLAlchemy
-    Engine é thread-safe para uso concorrente.
+    Engine é thread-safe para uso concorrente. A criação usa double-checked
+    locking: rotas síncronas do FastAPI rodam no threadpool, então sem o lock
+    duas requests concorrentes na primeira chamada poderiam criar duas engines
+    (vazando um pool de conexões na RDS).
 
     Returns:
         Engine: Engine configurada com pool_pre_ping=True.
     """
     global _engine
     if _engine is None:
-        _engine = create_engine(get_db_url(), pool_pre_ping=True)
+        with _engine_lock:
+            if _engine is None:
+                _engine = create_engine(get_db_url(), pool_pre_ping=True)
     return _engine
