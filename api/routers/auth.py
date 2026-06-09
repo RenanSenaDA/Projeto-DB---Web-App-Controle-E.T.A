@@ -9,7 +9,7 @@ from sqlalchemy import text
 
 from database.connection import get_engine
 from schemas.auth import LoginIn, InviteIn, RegisterInviteIn, UserOut
-from core.security import hash_password, verify_password
+from core.security import hash_password, verify_password, create_access_token
 from deps import get_current_admin, get_current_user
 from services.email_service import send_brevo_invite
 from core.config import settings
@@ -22,7 +22,7 @@ def auth_login(payload: LoginIn):
     """
     Realiza o login de um usuário.
 
-    Verifica email e senha, e retorna um token de acesso "dummy".
+    Verifica email e senha e retorna um token de acesso JWT assinado.
     """
     eng = get_engine()
     with eng.connect() as conn:
@@ -44,7 +44,7 @@ def auth_login(payload: LoginIn):
     if not verify_password(payload.password, row._mapping["password_hash"]):
         raise HTTPException(status_code=401, detail="Credenciais inválidas")
 
-    token = f"dummy-{row._mapping['id']}-{int(datetime.utcnow().timestamp())}"
+    token = create_access_token(row._mapping["id"], row._mapping["role"])
     return {
         "token": token,
         "user": {

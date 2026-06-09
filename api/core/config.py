@@ -35,4 +35,11 @@ class Settings:
     ALERT_SENDER_EMAIL: str = os.getenv("ALERT_SENDER_EMAIL", "admin@aqualink.com")
     ALERT_SENDER_NAME: str = os.getenv("ALERT_SENDER_NAME", "Aqualink Admin")
 
+    # Configurações de Autenticação (JWT)
+    # JWT_SECRET deve vir do .env em produção (ex.: `openssl rand -hex 32`).
+    # Se vazio, core/security.py gera um segredo efêmero e emite warning.
+    JWT_SECRET: str = os.getenv("JWT_SECRET", "")
+    JWT_ALG: str = os.getenv("JWT_ALG", "HS256")
+    JWT_EXPIRE_MIN: int = int(os.getenv("JWT_EXPIRE_MIN", "1440"))
+
 settings = Settings()
