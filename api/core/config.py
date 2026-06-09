@@ -29,6 +29,9 @@ class Settings:
     LOCAL_TZ: str = os.getenv("LOCAL_TZ", os.getenv("TZ", "America/Fortaleza"))
     FEED_INTERVAL: int = int(os.getenv("FEED_INTERVAL", "5"))
     FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3000")
+    # Origens permitidas no CORS (separadas por vírgula). Se vazio, usa FRONTEND_URL.
+    # Em produção defina a origem real do dashboard, ex.: "https://app.exemplo.com".
+    CORS_ORIGINS: str = os.getenv("CORS_ORIGINS", "")
     
     # Configurações de Email (Brevo)
     BREVO_API_KEY: str = os.getenv("BREVO_API_KEY", "")
