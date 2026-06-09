@@ -125,6 +125,8 @@ def get_last_measurements_with_limits():
             COALESCE(m.tag, m.meta->>'tag', s.tag) AS tag,
             m.value,
             m.ts,
+            s.plausible_min,
+            s.plausible_max,
             cl.limite,
             cl.limite_min,
             cl.limite_max,
@@ -328,6 +330,16 @@ def check_alerts():
 
             if stale_active:
                 # Dado velho: não avalia high/low (mantém eventuais abertos como estão).
+                continue
+
+            # Leitura IMPLAUSÍVEL (fora da faixa física do sensor) -> não alarma em
+            # cima de lixo. Só atua quando plausible_min/max estão configurados.
+            pmin = r.get("plausible_min")
+            pmax = r.get("plausible_max")
+            if v is not None and (
+                (pmin is not None and v < float(pmin)) or (pmax is not None and v > float(pmax))
+            ):
+                print(f"[ALARM] leitura implausível ignorada: tag={tag} v={v} faixa=[{pmin},{pmax}]")
                 continue
 
             # ACIMA / ABAIXO da faixa
