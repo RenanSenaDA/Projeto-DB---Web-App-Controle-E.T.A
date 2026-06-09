@@ -39,11 +39,23 @@ def get_db_url() -> str:
         return to_sqlalchemy_url(url)
     return f"postgresql+psycopg://{settings.PGUSER}:{settings.PGPASSWORD}@{settings.PGHOST}:{settings.PGPORT}/{settings.PGDATABASE}"
 
+# Engine criada uma única vez e reusada em todo o processo (singleton de módulo).
+# Antes era recriada a cada chamada de get_engine() (~18 call sites, às vezes 2x
+# por request), descartando o connection pool e podendo esgotar as conexões da RDS.
+_engine: Engine | None = None
+
+
 def get_engine() -> Engine:
     """
-    Cria e retorna uma engine SQLAlchemy.
-    
+    Retorna a engine SQLAlchemy compartilhada, criando-a na primeira chamada.
+
+    A engine (e seu connection pool) é reusada entre requests. SQLAlchemy
+    Engine é thread-safe para uso concorrente.
+
     Returns:
         Engine: Engine configurada com pool_pre_ping=True.
     """
-    return create_engine(get_db_url(), pool_pre_ping=True)
+    global _engine
+    if _engine is None:
+        _engine = create_engine(get_db_url(), pool_pre_ping=True)
+    return _engine
