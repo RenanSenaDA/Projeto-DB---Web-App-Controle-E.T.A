@@ -1,179 +1,29 @@
 -- =============================================================================
--- Snapshot do schema `eta`. A partir da adoção do Alembic, a FONTE AUTORITATIVA
--- do schema é api/migrations/ (baseline: 0001_baseline_schema). Este arquivo é
--- mantido como referência/inicialização rápida e deve espelhar a baseline.
--- NÃO crie/altere tabelas manualmente em produção — use uma revisão Alembic.
+-- ATENÇÃO: este arquivo NÃO é mais a fonte do schema.
+--
+-- O schema do banco passou a ser gerenciado por **Alembic**. A fonte autoritativa
+-- e o DDL real estão em:  api/migrations/versions/0001_baseline_schema.py
+-- (ver também api/migrations/README.md).
+--
+-- Para criar/atualizar o schema use:  alembic upgrade head
+-- Para versionar uma mudança:         alembic revision -m "..."
+--
+-- O conteúdo anterior deste arquivo (modelo normalizado com site/unit/device/
+-- gateway/raw_ingest/event/calibration) NUNCA correspondeu ao banco real — era
+-- ficção. O schema REAL de produção é um modelo PLANO, resumido abaixo apenas
+-- para referência rápida (o DDL fiel está na baseline do Alembic):
+--
+--   sensor          (id TEXT PK [seq], tag TEXT UNIQUE, unit, meta JSONB)
+--   measurement     (id BIGSERIAL PK, sensor_id TEXT FK->sensor, ts, value,
+--                    quality TEXT, meta JSONB, tag, unit; UNIQUE(sensor_id, ts))
+--   app_user        (id SERIAL PK, email UNIQUE, name, password_hash, role,
+--                    is_active, created_at)
+--   user_invites    (token PK, email, created_by FK->app_user, expires_at,
+--                    used, created_at)        -- TIMESTAMP sem timezone
+--   config_limites  (tag PK, limite, updated_at, label)
+--   config_sistema  (id PK, alarms_enabled, updated_at)
+--
+-- Cruft conhecido em produção (a limpar via revisão Alembic futura): tabela
+-- órfã `user_invite` (singular, sem uso), UNIQUE duplicada em app_user.email,
+-- e FK duplicada/conflitante em measurement.sensor_id.
 -- =============================================================================
-
-CREATE SCHEMA IF NOT EXISTS eta;
-SET search_path TO eta, public;
-
--- 1) Local/Unidades/Dispositivos
-CREATE TABLE IF NOT EXISTS site (
-  id        SERIAL PRIMARY KEY,
-  name      TEXT NOT NULL,
-  city      TEXT,
-  state     TEXT,
-  timezone  TEXT DEFAULT 'UTC',
-  meta      JSONB
-);
-
-CREATE TABLE IF NOT EXISTS unit (
-  id        SERIAL PRIMARY KEY,
-  site_id   INT NOT NULL REFERENCES site(id) ON DELETE CASCADE,
-  name      TEXT NOT NULL,
-  process   TEXT,
-  meta      JSONB
-);
-
-CREATE TABLE IF NOT EXISTS device (
-  id        SERIAL PRIMARY KEY,
-  unit_id   INT NOT NULL REFERENCES unit(id) ON DELETE CASCADE,
-  vendor    TEXT,
-  model     TEXT,
-  serial    TEXT UNIQUE,
-  protocol  TEXT,
-  meta      JSONB
-);
-
--- 2) Sensores/Tags
-CREATE TABLE IF NOT EXISTS sensor (
-  id          SERIAL PRIMARY KEY,
-  device_id   INT NOT NULL REFERENCES device(id) ON DELETE CASCADE,
-  tag         TEXT NOT NULL UNIQUE,
-  name        TEXT,
-  unit        TEXT,
-  description TEXT,
-  min_valid   DOUBLE PRECISION,
-  max_valid   DOUBLE PRECISION,
-  decimals    INT DEFAULT 3,
-  meta        JSONB
-);
-
--- 3) Gateways
-CREATE TABLE IF NOT EXISTS gateway (
-  id        SERIAL PRIMARY KEY,
-  name      TEXT NOT NULL,
-  version   TEXT,
-  last_ip   INET,
-  meta      JSONB
-);
-
--- 4) Ingestão bruta (staging)
-CREATE TABLE IF NOT EXISTS raw_ingest (
-  id           BIGSERIAL PRIMARY KEY,
-  gateway_id   INT REFERENCES gateway(id) ON DELETE SET NULL,
-  received_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  src_topic    TEXT,
-  payload      JSONB NOT NULL,
-  status       TEXT DEFAULT 'received',  -- received|parsed|failed
-  err_msg      TEXT
-);
-CREATE INDEX IF NOT EXISTS idx_raw_ingest_received_at ON raw_ingest (received_at DESC);
-CREATE INDEX IF NOT EXISTS idx_raw_ingest_payload ON raw_ingest USING GIN (payload);
-
--- 5) Medições curadas
-CREATE TABLE IF NOT EXISTS measurement (
-  id          BIGSERIAL PRIMARY KEY,
-  sensor_id   INT NOT NULL REFERENCES sensor(id) ON DELETE CASCADE,
-  ts          TIMESTAMPTZ NOT NULL,
-  value       DOUBLE PRECISION NOT NULL,
-  quality     BOOLEAN DEFAULT TRUE,
-  meta        JSONB,
-  UNIQUE(sensor_id, ts)
-);
-CREATE INDEX IF NOT EXISTS idx_measurement_sensor_ts ON measurement (sensor_id, ts DESC);
-CREATE INDEX IF NOT EXISTS idx_measurement_ts ON measurement (ts DESC);
-
--- 6) Eventos/Alarmes
-CREATE TABLE IF NOT EXISTS event (
-  id          BIGSERIAL PRIMARY KEY,
-  sensor_id   INT NOT NULL REFERENCES sensor(id) ON DELETE CASCADE,
-  ts          TIMESTAMPTZ NOT NULL,
-  severity    TEXT CHECK (severity IN ('info','warn','crit')) DEFAULT 'info',
-  message     TEXT NOT NULL,
-  meta        JSONB
-);
-CREATE INDEX IF NOT EXISTS idx_event_sensor_ts ON event (sensor_id, ts DESC);
-
--- 7) Calibração
-CREATE TABLE IF NOT EXISTS calibration (
-  id        SERIAL PRIMARY KEY,
-  sensor_id INT NOT NULL REFERENCES sensor(id) ON DELETE CASCADE,
-  ts        TIMESTAMPTZ NOT NULL,
-  method    TEXT,
-  meta      JSONB
-);
-
--- 8) Usuários e convites
-CREATE TABLE IF NOT EXISTS app_user (
-  id            SERIAL PRIMARY KEY,
-  email         TEXT NOT NULL UNIQUE,
-  name          TEXT,
-  password_hash TEXT NOT NULL,
-  role          TEXT DEFAULT 'user',
-  is_active     BOOLEAN DEFAULT TRUE,
-  created_at    TIMESTAMPTZ DEFAULT now()
-);
-CREATE INDEX IF NOT EXISTS ix_app_user_email ON app_user (lower(email));
-
-CREATE TABLE IF NOT EXISTS user_invites (
-  token       TEXT PRIMARY KEY,
-  email       TEXT NOT NULL,
-  created_by  INT REFERENCES app_user(id) ON DELETE SET NULL,
-  expires_at  TIMESTAMPTZ NOT NULL,
-  used        BOOLEAN NOT NULL DEFAULT FALSE,
-  created_at  TIMESTAMPTZ DEFAULT now()
-);
-
--- 9) Limites e estado dos alarmes
-CREATE TABLE IF NOT EXISTS config_limites (
-  tag        TEXT PRIMARY KEY,
-  limite     DOUBLE PRECISION NOT NULL,
-  updated_at TIMESTAMPTZ DEFAULT now()
-);
-
-CREATE TABLE IF NOT EXISTS config_sistema (
-  id             INT PRIMARY KEY,
-  alarms_enabled BOOLEAN DEFAULT TRUE,
-  updated_at     TIMESTAMPTZ DEFAULT now()
-);
-INSERT INTO config_sistema(id, alarms_enabled) VALUES (1, TRUE) ON CONFLICT (id) DO NOTHING;
-
--- ---------- Timescale opcional ----------
-DO $$
-BEGIN
-  PERFORM 1 FROM pg_extension WHERE extname = 'timescaledb';
-  IF FOUND THEN
-    -- já existe, ok
-  ELSE
-    BEGIN
-      CREATE EXTENSION IF NOT EXISTS timescaledb;
-    EXCEPTION WHEN OTHERS THEN
-      -- se não tiver disponível, segue sem Timescale
-      RAISE NOTICE 'TimescaleDB não disponível, seguindo sem extensão.';
-    END;
-  END IF;
-
-  -- tentar criar hypertable se extensão estiver ativa
-  IF EXISTS (SELECT 1 FROM pg_extension WHERE extname='timescaledb') THEN
-    PERFORM create_hypertable('measurement','ts', if_not_exists => TRUE);
-  END IF;
-END$$;
-
--- Views úteis
-CREATE OR REPLACE VIEW v_latest_per_sensor AS
-SELECT DISTINCT ON (m.sensor_id)
-  m.sensor_id, s.tag, s.unit, m.value, m.ts, m.quality
-FROM measurement m
-JOIN sensor s ON s.id = m.sensor_id
-ORDER BY m.sensor_id, m.ts DESC;
-
-CREATE OR REPLACE VIEW v_hourly_avg_24h AS
-SELECT s.tag, date_trunc('hour', m.ts) AS hour_bucket,
-       AVG(m.value) AS avg_value, MIN(m.value) AS min_value, MAX(m.value) AS max_value
-FROM measurement m
-JOIN sensor s ON s.id = m.sensor_id
-WHERE m.ts >= now() - interval '24 hours'
-GROUP BY s.tag, hour_bucket
-ORDER BY hour_bucket DESC, s.tag;
