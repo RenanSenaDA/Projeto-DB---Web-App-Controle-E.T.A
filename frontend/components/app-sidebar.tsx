@@ -6,6 +6,7 @@ import Link from "next/link";
 import {
   BarChart2,
   BarChart3,
+  BellRing,
   LayoutDashboard,
   Settings,
   LogOut,
@@ -45,6 +46,11 @@ const items = [
     title: "Relatórios",
     url: "/generate-reports",
     icon: BarChart2,
+  },
+  {
+    title: "Alarmes",
+    url: "/alarms",
+    icon: BellRing,
   },
   {
     title: "Configurações",
