@@ -1,0 +1,2 @@
+# Scripts shell SEMPRE com fim de linha LF (senão quebram no bash da EC2/Linux).
+*.sh text eol=lf
