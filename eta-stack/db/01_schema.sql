@@ -1,3 +1,10 @@
+-- =============================================================================
+-- Snapshot do schema `eta`. A partir da adoção do Alembic, a FONTE AUTORITATIVA
+-- do schema é api/migrations/ (baseline: 0001_baseline_schema). Este arquivo é
+-- mantido como referência/inicialização rápida e deve espelhar a baseline.
+-- NÃO crie/altere tabelas manualmente em produção — use uma revisão Alembic.
+-- =============================================================================
+
 CREATE SCHEMA IF NOT EXISTS eta;
 SET search_path TO eta, public;
 
@@ -97,6 +104,41 @@ CREATE TABLE IF NOT EXISTS calibration (
   method    TEXT,
   meta      JSONB
 );
+
+-- 8) Usuários e convites
+CREATE TABLE IF NOT EXISTS app_user (
+  id            SERIAL PRIMARY KEY,
+  email         TEXT NOT NULL UNIQUE,
+  name          TEXT,
+  password_hash TEXT NOT NULL,
+  role          TEXT DEFAULT 'user',
+  is_active     BOOLEAN DEFAULT TRUE,
+  created_at    TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS ix_app_user_email ON app_user (lower(email));
+
+CREATE TABLE IF NOT EXISTS user_invites (
+  token       TEXT PRIMARY KEY,
+  email       TEXT NOT NULL,
+  created_by  INT REFERENCES app_user(id) ON DELETE SET NULL,
+  expires_at  TIMESTAMPTZ NOT NULL,
+  used        BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at  TIMESTAMPTZ DEFAULT now()
+);
+
+-- 9) Limites e estado dos alarmes
+CREATE TABLE IF NOT EXISTS config_limites (
+  tag        TEXT PRIMARY KEY,
+  limite     DOUBLE PRECISION NOT NULL,
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS config_sistema (
+  id             INT PRIMARY KEY,
+  alarms_enabled BOOLEAN DEFAULT TRUE,
+  updated_at     TIMESTAMPTZ DEFAULT now()
+);
+INSERT INTO config_sistema(id, alarms_enabled) VALUES (1, TRUE) ON CONFLICT (id) DO NOTHING;
 
 -- ---------- Timescale opcional ----------
 DO $$

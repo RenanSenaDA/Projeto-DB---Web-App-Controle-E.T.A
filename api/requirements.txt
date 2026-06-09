@@ -2,6 +2,7 @@ fastapi==0.115.5
 uvicorn==0.32.0
 python-dotenv==1.0.1
 SQLAlchemy==2.0.34
+alembic==1.13.3
 psycopg[binary]==3.2.10
 passlib[bcrypt]==1.7.4
 PyJWT==2.10.1
