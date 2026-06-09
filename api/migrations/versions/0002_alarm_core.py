@@ -34,6 +34,8 @@ UPGRADE = [
     "ALTER TABLE eta.config_limites ADD COLUMN IF NOT EXISTS limite_max DOUBLE PRECISION;",
     # O `limite` legado era o limite SUPERIOR -> migra para limite_max.
     "UPDATE eta.config_limites SET limite_max = limite WHERE limite_max IS NULL AND limite IS NOT NULL;",
+    # `limite` deixa de ser obrigatório: faixas só-com-mínimo deixam limite NULL.
+    "ALTER TABLE eta.config_limites ALTER COLUMN limite DROP NOT NULL;",
 
     # --- Config de sensor mudo (global) ---
     "ALTER TABLE eta.config_sistema ADD COLUMN IF NOT EXISTS stale_after_min INTEGER NOT NULL DEFAULT 15;",
