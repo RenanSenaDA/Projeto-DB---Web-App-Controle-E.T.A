@@ -35,3 +35,7 @@ node_modules/
 *.save
 *.fixbak
 *.save.1
+*.bak
+
+# logs
+*.log
